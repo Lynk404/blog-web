@@ -43,6 +43,12 @@ const cipher = btoa(String.fromCharCode(...new Uint8Array(buf)))  // 2048 位密
 3. 把 `cipher` 放进请求体的 `password` 字段（或 `oldPassword`）。**只需加密一层**，服务端会自己做第二层。
 4. 公钥每次启动前端时取一次即可；换密钥后服务端会提示登录失败，需要重新获取公钥。
 
+**前端实现说明（blog-web）**
+
+- 缓存的公钥在使用时若请求被 4xx 拒绝，前端会清除缓存、重新获取公钥并**自动重试一次**；重试后仍失败则直接报错，不再重试。
+- 需要加密多个字段的接口（如 `PUT /user` 的 `password` 与 `oldPassword`，`DELETE /user` 的 `password`）均由 `src/config/api.config.ts` 的 `rsaKey` 声明，每个字段单独加密一层。
+- `crypto.subtle` 仅在 HTTPS 或 `localhost` 下可用。部署时若通过 HTTP 的 IP 访问，加密会失败，必须启用 HTTPS。
+
 ## 4. 输入规则（前端先校验，服务端也会校验）
 
 | 字段 | 规则（明文） |

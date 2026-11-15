@@ -8,6 +8,11 @@ function pemToDer(pem: string): Uint8Array<ArrayBuffer> {
   return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))
 }
 
+/** 清除缓存的公钥，下次加密时重新从 /keys 获取（服务端换密钥后使用） */
+export function clearPublicKey(): void {
+  storage.remove(base.PUBKEY_NAME)
+}
+
 /**
  * 使用 RSA-OAEP + SHA-1 加密明文，返回 base64 密文。
  * 服务端只接受该算法，不要改为 SHA-256 或 JSEncrypt。

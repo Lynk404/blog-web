@@ -72,8 +72,10 @@ npm run format       # prettier --write src/
 ### 加密
 
 - `src/utils/encrypt.ts` 使用 WebCrypto：`RSA-OAEP` + `SHA-1`，与服务端一致（见 `docs/integration/frontend-handoff.md`，服务端 `docs/api/api.md` 中为 `pkcs1_oaep`）。**不要改为 SHA-256 或 JSEncrypt。**
-- 公钥通过 `GET /keys` 获取，缓存于 `localStorage`（键 `ua_publicKay`）。
+- 公钥通过 `GET /keys` 获取，缓存于 `localStorage`（键 `ua_publicKay`）。缓存的公钥被 4xx 拒绝时，`Http` 会清除缓存并重试一次（`clearPublicKey()`）。
 - 密码在客户端加密一层，服务端会做第二层。
+- 多字段加密：`rsaKey` 可为字符串或数组。`putUserInfo` 加密 `password`、`oldPassword`；`deleteUser`（`DELETE /user`）加密 `password`。
+- `crypto.subtle` 仅在 HTTPS 或 `localhost` 下可用，部署时必须启用 HTTPS。
 
 ### 状态与存储
 

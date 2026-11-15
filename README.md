@@ -119,7 +119,9 @@ npm run dev
 ### 敏感数据加密
 
 - 密码等字段通过 `src/utils/encrypt.ts` 加密（WebCrypto，RSA-OAEP + SHA-1），组件中只调用该工具，不自行实现加密。
-- 公钥由 `GET /keys` 获取并缓存于 `localStorage`，不要硬编码在业务代码中。
+- 公钥由 `GET /keys` 获取并缓存于 `localStorage`，不要硬编码在业务代码中。缓存失效时自动重新获取并重试一次。
+- 需要加密的接口在 `src/config/api.config.ts` 中用 `rsaKey` 声明，支持单个字段或字段数组。
+- `crypto.subtle` 仅在 HTTPS 或 `localhost` 下可用，部署时必须启用 HTTPS。
 
 ### 路由
 
