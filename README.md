@@ -15,7 +15,7 @@ Bug论坛前端应用，基于 Vue 3 + Vite + TypeScript 构建，对接 `blog-s
 | Vite | ^8.0.8 | 构建工具 |
 | TypeScript | ~6.0.0 | 类型检查（`vue-tsc`） |
 | Axios | ^1.21.1 | HTTP 请求 |
-| nprogress | ^0.2.0 | 路由切换进度条 |
+| nprogress | ^0.2.0 | 已安装，当前未使用 |
 | unplugin-auto-import / unplugin-vue-components | ^21.1.0 / ^32.1.0 | Element Plus 按需导入 |
 
 > 版本以 `package.json` 为准。
@@ -31,20 +31,21 @@ blog-web/
 ├── public/                    # 静态资源（原样拷贝到构建产物）
 ├── src/
 │   ├── api/
-│   │   ├── request.ts         # axios 实例与拦截器（Token 注入、401 清除 Token）
+│   │   ├── request.ts         # axios 实例与拦截器（Token 注入、401 清除登录态并触发跳转）
 │   │   └── index.ts           # 统一请求入口 Http()，所有接口经此调用
-│   ├── assets/                # 参与构建的静态资源
-│   ├── components/            # 跨页面复用组件
+│   ├── assets/                # 参与构建的静态资源（main.css 为全局样式）
+│   ├── components/            # AppBrand.vue（logo）；其余为模板遗留组件（待清理，见 CLAUDE.md）
 │   ├── config/                # 接口表、基础配置、表单与弹窗、校验规则
-│   ├── router/                # 路由配置
+│   ├── layouts/               # AppLayout.vue（顶部导航 + 头像菜单）、AuthLayout.vue（登录注册，无导航）
+│   ├── router/                # 路由配置与守卫
 │   ├── stores/                # Pinia 状态（user.ts）
-│   ├── utils/                 # 工具函数：storage（localStorage 封装）、encrypt（RSA 加密）
-│   ├── views/                 # 页面级组件
+│   ├── types/                 # 接口数据类型（api.ts）
+│   ├── utils/                 # storage（localStorage 封装）、encrypt（RSA 加密）、redirect（跳转校验）、session（自动登录与资料）
+│   ├── views/                 # 页面：首页、文章详情、专栏列表/详情、个人主页、登录、注册、404
 │   ├── auto-imports.d.ts      # 自动生成（unplugin-auto-import），勿手改
 │   ├── components.d.ts        # 自动生成（unplugin-vue-components），勿手改
-│   ├── App.vue
-│   ├── main.ts
-│   └── style.css
+│   ├── App.vue                # 仅 <RouterView />
+│   └── main.ts
 ├── env.d.ts                   # 环境变量类型声明
 ├── index.html
 ├── vite.config.ts
@@ -114,7 +115,8 @@ npm run dev
 - **所有请求必须经过 `src/api/`，组件中禁止直接调用 axios。**
 - 接口在 `src/config/api.config.ts` 中以 `type` 命名登记（`url`、`method`、`rsaKey`、`rest`、`setToken`、`noMessage`）。
 - 调用方式：`Http({ type, data })`，定义于 `src/api/index.ts`。
-- `src/api/request.ts` 统一处理 `baseURL`、Token 注入（`Authorization: Bearer`）与 401 时清除 Token。
+- `src/api/request.ts` 统一处理 `baseURL`、Token 注入（`Authorization: Bearer`）与 401：清除登录态后，由 `main.ts` 注册的处理函数跳转登录页。
+- 路径参数（如 `getArticleById` 的 `:id`）由 `Http` 替换进 url，不再随请求发送。
 
 ### 敏感数据加密
 
@@ -125,8 +127,33 @@ npm run dev
 
 ### 路由
 
-- 路由配置集中在 `src/router/index.ts`。
-- 非首页页面使用懒加载：`component: () => import('../views/Xxx.vue')`。
+- 路由配置集中在 `src/router/index.ts`。主站页面挂载在 `AppLayout`（带顶部导航）下，登录与注册挂载在 `AuthLayout`（无导航）下，未匹配路径进入 404 页面。
+- 页面组件使用懒加载：`component: () => import('../views/Xxx.vue')`。
+- `meta.requiresAuth` 标记需登录页面，`meta.guestOnly` 标记仅未登录可访问的页面（登录、注册）。守卫在 `router.beforeEach` 中处理。
+- 登录后的跳转地址经 `src/utils/redirect.ts` 的 `safeRedirect` 校验，仅允许站内路径。
+
+### 已实现页面
+
+| 路径 | 页面 | 说明 |
+| --- | --- | --- |
+| `/` | 首页 | 文章列表、关键词搜索、分页（每页 10 条） |
+| `/articles/:id` | 文章详情 | 正文（纯文本显示）与内嵌评论 |
+| `/columns` | 专栏列表 | |
+| `/columns/:id` | 专栏详情 | 专栏下文章（未分页） |
+| `/me` | 个人主页 | 需登录，只读展示资料与文章、专栏数量 |
+| `/login` | 登录 | 独立页面，无导航栏，仅做必填校验 |
+| `/register` | 注册 | 独立页面，使用 `validate.config.ts` 完整规则 |
+| 其他 | 404 | |
+
+### 登录与自动登录
+
+- 登录态保存在 `localStorage`（token 键 `ua_jot`），刷新页面后自动恢复：启动时调用 `GET /index` 校验，通过后拉取 `GET /user/` 资料。
+- 已登录时顶部右侧显示头像，点击打开菜单：个人主页、退出登录。未登录显示"登录""注册"。
+- 登录、注册页不显示顶部导航栏，左上角 logo 可返回首页。
+
+### 视觉
+
+- 深色主题，配色与变量定义见 `src/assets/main.css`。字体为系统无衬线字体。
 
 ### 依赖管理
 

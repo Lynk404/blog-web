@@ -16,9 +16,10 @@ export interface ApiEntry {
 
 const API_LIST = {
   register: { url: '/admin/register', method: 'POST', rsaKey: 'password', setToken: true },
-  getUserInfo: { url: '/user', method: 'GET' },
-  putUserInfo: { url: '/user', method: 'PUT', rsaKey: ['password', 'oldPassword'] },
-  deleteUser: { url: '/user', method: 'DELETE', rsaKey: 'password' },
+  // 后端 /user 路由挂载在根路径，使用尾斜杠避免 Express 的 301 重定向
+  getUserInfo: { url: '/user/', method: 'GET' },
+  putUserInfo: { url: '/user/', method: 'PUT', rsaKey: ['password', 'oldPassword'] },
+  deleteUser: { url: '/user/', method: 'DELETE', rsaKey: 'password' },
   index: { url: '/index', method: 'GET', noMessage: true },
   login: { url: '/admin/login', method: 'POST', rsaKey: 'password', setToken: true },
   pubKey: { url: '/keys', method: 'GET' },
@@ -28,6 +29,8 @@ const API_LIST = {
   postComment: { url: '/api/rest/comments', method: 'POST' },
   postArticle: { url: '/api/rest/articles', method: 'POST' },
   getArticleById: { url: '/api/rest/articles/:id', method: 'GET', rest: true },
+  getColumnById: { url: '/api/rest/columns/:id', method: 'GET', rest: true },
+  search: { url: '/articles/search', method: 'GET' },
   uploadArticle: { url: '/upload/article', method: 'POST' },
 } satisfies Record<string, ApiEntry>
 

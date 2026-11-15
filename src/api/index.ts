@@ -57,10 +57,14 @@ export default async function Http<T = unknown>({ type, data = {} }: HttpOptions
   const entry = API_LIST[type]
   const fields = rsaFieldsOf(entry)
   let url = entry.url
+  let body: Record<string, unknown> = data
   if (entry.rest) {
     const param = url.match(/:(\w+)$/)?.[1]
     if (param) {
       url = url.replace(/:\w+$/, String(data[param]))
+      // 路径参数已放入 url，不再随请求体/query 发送
+      body = { ...data }
+      delete body[param]
     }
   }
 
@@ -68,7 +72,7 @@ export default async function Http<T = unknown>({ type, data = {} }: HttpOptions
     // 本次加密是否使用了缓存的公钥（缓存可能已因服务端换密钥而失效）
     const usedCachedKey = fields.length > 0 && storage.get(base.PUBKEY_NAME) !== null
     try {
-      const payload = await buildPayload(data, fields)
+      const payload = await buildPayload(body, fields)
       const result = await send<T>(entry, url, payload)
 
       if (entry.setToken) {
