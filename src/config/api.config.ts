@@ -32,6 +32,8 @@ const API_LIST = {
   getColumnById: { url: '/api/rest/columns/:id', method: 'GET', rest: true },
   search: { url: '/articles/search', method: 'GET' },
   uploadArticle: { url: '/upload/article', method: 'POST' },
+  uploadUserAvatar: { url: '/upload/user', method: 'POST' },
+  likeArticle: { url: '/articles/likes/:id', method: 'POST', rest: true },
 } satisfies Record<string, ApiEntry>
 
 export type ApiType = keyof typeof API_LIST

@@ -9,7 +9,8 @@ import request, { type ApiEnvelope } from './request'
 
 export interface HttpOptions {
   type: ApiType
-  data?: Record<string, unknown>
+  /** 普通请求体；上传接口传入 FormData，原样发送（不加密、不复制） */
+  data?: Record<string, unknown> | FormData
 }
 
 interface AuthResult {
@@ -30,9 +31,11 @@ function isClientError(error: unknown): boolean {
 
 /** 复制请求数据并加密指定字段，不修改调用方传入的对象 */
 async function buildPayload(
-  source: Record<string, unknown>,
+  source: Record<string, unknown> | FormData,
   fields: string[],
-): Promise<Record<string, unknown>> {
+): Promise<Record<string, unknown> | FormData> {
+  // FormData 无法展开复制，直接返回（上传接口没有需要加密的字段）
+  if (source instanceof FormData) return source
   const payload = { ...source }
   for (const field of fields) {
     const plain = payload[field]
@@ -43,7 +46,11 @@ async function buildPayload(
   return payload
 }
 
-async function send<T>(entry: ApiEntry, url: string, payload: Record<string, unknown>): Promise<T> {
+async function send<T>(
+  entry: ApiEntry,
+  url: string,
+  payload: Record<string, unknown> | FormData,
+): Promise<T> {
   const config =
     entry.method === 'GET'
       ? { url, method: entry.method, params: payload }
@@ -57,14 +64,15 @@ export default async function Http<T = unknown>({ type, data = {} }: HttpOptions
   const entry = API_LIST[type]
   const fields = rsaFieldsOf(entry)
   let url = entry.url
-  let body: Record<string, unknown> = data
-  if (entry.rest) {
+  let body: Record<string, unknown> | FormData = data
+  if (entry.rest && !(data instanceof FormData)) {
     const param = url.match(/:(\w+)$/)?.[1]
     if (param) {
-      url = url.replace(/:\w+$/, String(data[param]))
+      const plain: Record<string, unknown> = { ...data }
+      url = url.replace(/:\w+$/, String(plain[param]))
       // 路径参数已放入 url，不再随请求体/query 发送
-      body = { ...data }
-      delete body[param]
+      delete plain[param]
+      body = plain
     }
   }
 

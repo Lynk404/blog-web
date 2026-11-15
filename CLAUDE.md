@@ -29,15 +29,10 @@ npm run format       # prettier --write src/
 ## 代码库现状
 
 - 技术栈：Vue 3 + TypeScript（`<script setup lang="ts">`）+ Vite 8 + Pinia + Vue Router + Element Plus（按需导入）。
-- 已完成：布局与路由、只读浏览、登录注册、自动登录、头像菜单、个人主页（独立页面）、退出二次确认、登录注册卡片与居中、深色主题。类型检查与构建通过。
-- **运行时仅做了接口层的只读验证**（后端在线）：`GET /index` 未登录返回 401，`GET /user` 未登录返回 401，`GET /keys` 返回 200。**未做浏览器端到端测试**，登录、自动登录、头像菜单、个人主页的页面行为尚未在浏览器中验证。
-- 已实现页面：首页（文章列表、搜索、分页）、文章详情（正文与内嵌评论）、专栏列表、专栏详情、个人主页（只读）、登录、注册、404。
-- 已删除：`src/views/AboutView.vue`（经用户确认）。
-- 待清理（**未删除，需用户确认后再删**）：
-  - `src/components/HelloWorld.vue`、`TheWelcome.vue`、`WelcomeItem.vue`、`components/icons/*`：未被引用。
-  - `src/stores/counter.ts`：演示代码。
-  - `src/assets/base.css`：`main.css` 已不再引入，未被引用。
-  - `src/assets/logo.svg`：`App.vue` 已不再引用，未被引用。
+- 已完成：布局与路由、只读浏览、登录注册、自动登录、头像菜单、个人主页（独立页面）、退出二次确认、登录注册卡片与居中、深色主题，以及写入功能（评论、点赞、发布文章、新建专栏、编辑资料、头像、改密码、注销）。类型检查与构建通过。
+- **接口层已验证**（后端在线）：只读接口与未登录 401 已验证；写接口（发评论、点赞、建专栏、发文章、改资料、上传头像、改密码、注销）已用临时账号联调，32 项全部通过（测试脚本在项目外，未入库）。**未做浏览器端到端测试**，登录、自动登录、头像菜单、个人主页与写入页面的交互尚未在浏览器中验证。
+- 已实现页面：首页（文章列表、搜索、分页、登录后写文章入口）、发布文章（登录，仅本人专栏）、文章详情（正文、评论、点赞、发表评论）、专栏列表（登录后新建专栏）、专栏详情、个人主页（资料、头像、编辑资料、改密码、注销）、登录、注册、404。
+- 已删除（经用户确认）：`src/views/AboutView.vue`；模板遗留的 `src/components/HelloWorld.vue`、`TheWelcome.vue`、`WelcomeItem.vue`、`components/icons/*`、`src/stores/counter.ts`、`src/assets/base.css`、`src/assets/logo.svg`。
 - `src/plugins/http.js` 在工作区中已删除（`git status` 显示 `D`），`src/plugins/` 为空目录。
 - 服务端契约文档 `docs/integration/frontend-handoff.md` 是接口的权威来源。`docs/api/` 为后端侧参考。
 - 项目内 Claude 配置：
@@ -60,7 +55,7 @@ npm run format       # prettier --write src/
 ### 路由与布局
 
 - `src/router/index.ts` 有两组布局：
-  - **主站** `AppLayout`（`src/layouts/AppLayout.vue`，顶部导航 + 右侧头像菜单）：`home`、`article-detail`、`columns`、`column-detail`。
+  - **主站** `AppLayout`（`src/layouts/AppLayout.vue`，顶部导航 + 右侧头像菜单）：`home`、`article-detail`、`article-create`（需登录）、`columns`、`column-detail`。
   - **独立页面** `AuthLayout`（`src/layouts/AuthLayout.vue`，无导航栏，仅左上角 logo `src/components/AppBrand.vue` 返回首页）：`login`、`register`（`guestOnly`，路由 meta `centered: true`，内容上下左右居中），以及 `profile`（`/me`，`requiresAuth`，顶部对齐）。
 - 未匹配路径进入 `not-found`。
 - 页面组件一律懒加载，路径为 `() => import('../views/Xxx.vue')`。
@@ -86,7 +81,7 @@ npm run format       # prettier --write src/
   - `rest: true` 时用 `data` 中的同名字段替换 `url` 末尾的 `:param`，并从请求体/query 中删除该字段；
   - 设置 `rsaKey` 时，对对应字段调用 `encrypt`（在副本上操作，不修改调用方数据）；
   - 使用缓存公钥时遇到 4xx，清除缓存并重试一次；
-  - GET 将 `data` 作为 `params`，其余方法作为 `data` 发送；
+  - GET 将 `data` 作为 `params`，其余方法作为 `data` 发送；`data` 为 `FormData` 时原样发送，不加密（上传）；
   - `setToken: true` 时，将 `userId`、`token` 写入 `localStorage`（键 `ua_uid`、`ua_jot`），并调用 `useUserStore().login()`；
   - 出错且未设置 `noMessage` 时，用 `ElNotification` 展示服务端返回的中文 `message`，然后重新抛出。
 - `src/api/request.ts` 是 axios 实例：
@@ -132,12 +127,16 @@ npm run format       # prettier --write src/
 - 删除专栏会级联删除他人文章与评论；注销账号同样级联。UI 中必须先弹出确认。
 - 分页 `size` 上限为 100，首页使用 10。
 - 头像上传要求 `uid` 等于当前用户 id，返回的 URL 需再通过 `PUT /user` 写入。限制：100 KB，仅 jpg/jpeg/png/gif/webp。
-- `content` 发送前需 `encodeURIComponent`。
+- `content` 发送前需 `encodeURIComponent`（仅文章；服务端对文章做 `decodeURIComponent`，评论不做此处理）。
+- `PUT /user` 可改字段为 `nikname`、`email`、`avatar`、`password`，**不含 `signature`**，个人主页不提供签名编辑。
+- 改密码后旧 token 失效存在同秒窗口：签发与改密码在同一秒内的旧 token 仍可能有效（后端 `iat` 精度为秒）。前端改密码成功后立即清除本地登录态。
+- 点赞接口后端不做去重，前端仅在文章详情页内限制成功点赞一次（刷新页面后可再次点击）。
+- 发布文章只能选本人专栏（列表按 `uid` 筛选，取前 100 条）；他人专栏返回 403。
 
 ### 配置与表单
 
 - `src/config/form.config.ts`、`modal.config.ts`、`validate.config.ts` 定义表单字段、弹窗按钮与校验规则（校验规则类型为 Element Plus 的 `FormRules`）。登录页、注册页已使用。
-- 登录只做必填校验（已有账号的密码可能不符合注册规则）；注册使用 `validate.config.ts` 的完整规则。
+- 登录只做必填校验（已有账号的密码可能不符合注册规则）；注册使用 `validate.config.ts` 的完整规则。编辑资料使用其中的 `nikname` 与 `email` 规则。
 - `form.config.ts` 中 `userInfo.signature` 的 `type` 写为 `'txt'`，属于已存在的写法，后续若需要多行输入需统一修正。
 
 ## 约定（沿用并更新自 README）

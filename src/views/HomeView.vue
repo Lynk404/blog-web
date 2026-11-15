@@ -2,10 +2,12 @@
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import Http from '../api'
+import { useUserStore } from '../stores/user'
 import type { ArticleBrief, Pagination } from '../types/api'
 
 const PAGE_SIZE = 10
 const router = useRouter()
+const user = useUserStore()
 
 const keyword = ref('')
 const page = ref(1)
@@ -60,6 +62,9 @@ onMounted(load)
         @clear="handleSearch"
       />
       <el-button type="primary" @click="handleSearch">搜索</el-button>
+      <el-button v-if="user.isLoggedIn" class="write" @click="router.push({ name: 'article-create' })">
+        写文章
+      </el-button>
     </div>
 
     <div class="list">
@@ -104,6 +109,10 @@ onMounted(load)
 
 .search {
   flex: 1;
+}
+
+.write {
+  min-height: 44px;
 }
 
 .item {

@@ -34,14 +34,14 @@ blog-web/
 │   │   ├── request.ts         # axios 实例与拦截器（Token 注入、401 清除登录态并触发跳转）
 │   │   └── index.ts           # 统一请求入口 Http()，所有接口经此调用
 │   ├── assets/                # 参与构建的静态资源（main.css 为全局样式）
-│   ├── components/            # AppBrand.vue（logo）；其余为模板遗留组件（待清理，见 CLAUDE.md）
+│   ├── components/            # AppBrand.vue（logo）；profile/（编辑资料、修改密码、注销账号弹窗）
 │   ├── config/                # 接口表、基础配置、表单与弹窗、校验规则
 │   ├── layouts/               # AppLayout.vue（顶部导航 + 头像菜单）、AuthLayout.vue（登录、注册、个人主页，无导航）
 │   ├── router/                # 路由配置与守卫
 │   ├── stores/                # Pinia 状态（user.ts）
 │   ├── types/                 # 接口数据类型（api.ts）
 │   ├── utils/                 # storage（localStorage 封装）、encrypt（RSA 加密）、redirect（跳转校验）、session（自动登录与资料）、logout（退出确认）
-│   ├── views/                 # 页面：首页、文章详情、专栏列表/详情、个人主页、登录、注册、404
+│   ├── views/                 # 页面：首页、文章详情与发布、专栏列表/详情、个人主页、登录、注册、404
 │   ├── auto-imports.d.ts      # 自动生成（unplugin-auto-import），勿手改
 │   ├── components.d.ts        # 自动生成（unplugin-vue-components），勿手改
 │   ├── App.vue                # 仅 <RouterView />
@@ -117,6 +117,7 @@ npm run dev
 - 调用方式：`Http({ type, data })`，定义于 `src/api/index.ts`。
 - `src/api/request.ts` 统一处理 `baseURL`、Token 注入（`Authorization: Bearer`）与 401：清除登录态后，由 `main.ts` 注册的处理函数跳转登录页。
 - 路径参数（如 `getArticleById` 的 `:id`）由 `Http` 替换进 url，不再随请求发送。
+- 上传接口的 `data` 传入 `FormData`，原样发送，不做加密。
 
 ### 敏感数据加密
 
@@ -129,18 +130,19 @@ npm run dev
 
 - 路由配置集中在 `src/router/index.ts`。主站页面挂载在 `AppLayout`（带顶部导航）下；登录、注册、个人主页挂载在 `AuthLayout`（无导航）下，未匹配路径进入 404 页面。
 - 页面组件使用懒加载：`component: () => import('../views/Xxx.vue')`。
-- `meta.requiresAuth` 标记需登录页面（个人主页），`meta.guestOnly` 标记仅未登录可访问的页面（登录、注册），`meta.centered` 标记认证布局中内容需上下居中的页面（登录、注册）。守卫在 `router.beforeEach` 中处理。
+- `meta.requiresAuth` 标记需登录页面（发布文章、个人主页），`meta.guestOnly` 标记仅未登录可访问的页面（登录、注册），`meta.centered` 标记认证布局中内容需上下居中的页面（登录、注册）。守卫在 `router.beforeEach` 中处理。
 - 登录后的跳转地址经 `src/utils/redirect.ts` 的 `safeRedirect` 校验，仅允许站内路径。
 
 ### 已实现页面
 
 | 路径 | 页面 | 说明 |
 | --- | --- | --- |
-| `/` | 首页 | 文章列表、关键词搜索、分页（每页 10 条） |
-| `/articles/:id` | 文章详情 | 正文（纯文本显示）与内嵌评论 |
-| `/columns` | 专栏列表 | |
+| `/` | 首页 | 文章列表、关键词搜索、分页（每页 10 条）；登录后显示"写文章" |
+| `/articles/new` | 发布文章 | 需登录。标题、正文、专栏（仅本人专栏）；正文发送前编码 |
+| `/articles/:id` | 文章详情 | 正文（纯文本显示）、内嵌评论；登录后可点赞（本页限一次）与发表评论 |
+| `/columns` | 专栏列表 | 登录后可新建专栏（名称唯一） |
 | `/columns/:id` | 专栏详情 | 专栏下文章（未分页） |
-| `/me` | 个人主页 | 需登录，独立页面（无导航栏），只读展示资料与文章、专栏数量，提供退出登录按钮 |
+| `/me` | 个人主页 | 需登录，独立页面（无导航栏）。展示资料与统计；更换头像、编辑资料（昵称、邮箱）、修改密码、注销账号（均需确认）；退出登录 |
 | `/login` | 登录 | 独立页面，无导航栏，仅做必填校验 |
 | `/register` | 注册 | 独立页面，使用 `validate.config.ts` 完整规则 |
 | 其他 | 404 | |

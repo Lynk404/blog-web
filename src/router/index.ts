@@ -28,6 +28,13 @@ const router = createRouter({
           component: () => import('../views/HomeView.vue'),
         },
         {
+          // 静态路径写在 articles/:id 之前，避免 new 被当作文章 id
+          path: 'articles/new',
+          name: 'article-create',
+          component: () => import('../views/ArticleCreateView.vue'),
+          meta: { requiresAuth: true },
+        },
+        {
           path: 'articles/:id',
           name: 'article-detail',
           component: () => import('../views/ArticleDetailView.vue'),

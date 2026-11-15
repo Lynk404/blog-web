@@ -9,6 +9,14 @@ const VALIDATE_CONFIG = {
       trigger: 'blur',
     },
   ],
+  nikname: [
+    { required: true, message: '昵称必填', trigger: 'blur' },
+    {
+      pattern: /^[一-龥a-zA-Z0-9]{1,8}$/,
+      message: '昵称：1-8位，数字、英文或汉字',
+      trigger: 'blur',
+    },
+  ],
   email: [
     { required: true, message: '邮箱必填', trigger: 'blur' },
     { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' },

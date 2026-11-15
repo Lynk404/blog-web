@@ -51,6 +51,8 @@ export interface ArticleDetail extends ArticleBrief {
 export interface Column {
   _id: string
   name: string
+  /** 专栏创建者 id，用于判断是否为本人专栏 */
+  uid?: string
   aids?: ArticleBrief[]
 }
 
