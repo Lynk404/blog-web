@@ -80,6 +80,122 @@ a {
   color: var(--el-color-primary-light-3);
 }
 
+/* 可点击卡片（shadow="hover"）的悬停反馈。
+ * Element Plus 默认悬停阴影为 0 0 12px #0000001f，在深色背景上几乎不可见，因此改用边框与背景变化 */
+.el-card.is-hover-shadow:hover {
+  border-color: var(--el-color-primary);
+  background-color: var(--el-bg-color-overlay);
+}
+
+/* 顶部进度条（nprogress）：使用强调色；选择器特异性高于库自带样式 */
+html:root #nprogress .bar {
+  background: var(--el-color-primary-light-3);
+}
+
+/* Markdown 编辑器与预览（v-md-editor）深色覆盖。
+ * 库的样式在懒加载分包中后加载，同等特异性会被覆盖，因此统一加 html:root 前缀提高优先级 */
+html:root .v-md-editor {
+  background: var(--el-bg-color);
+  border-color: var(--el-border-color);
+}
+
+html:root .v-md-editor__toolbar {
+  background: var(--el-bg-color-overlay);
+  border-bottom-color: var(--el-border-color);
+}
+
+/* 工具栏按钮：库默认为浅色（图标 #595959，悬停 #f5f5f5，激活 #e8e8e8，会显示为白色块） */
+html:root .v-md-editor__toolbar-item {
+  color: var(--el-text-color-regular);
+}
+
+html:root .v-md-editor__toolbar-item:hover {
+  background: var(--el-fill-color-light);
+}
+
+html:root .v-md-editor__toolbar-item--active,
+html:root .v-md-editor__toolbar-item--active:hover {
+  background: var(--el-fill-color);
+  color: var(--el-color-primary-light-3);
+}
+
+html:root .v-md-editor__menu {
+  background: var(--el-bg-color-overlay);
+  border: 1px solid var(--el-border-color);
+}
+
+html:root .v-md-editor__menu-item {
+  color: var(--el-text-color-regular);
+}
+
+html:root .v-md-editor__menu-item:hover {
+  background: var(--el-fill-color-light);
+}
+
+html:root .v-md-editor__editor-wrapper {
+  border-right-color: var(--el-border-color);
+}
+
+html:root .v-md-editor .CodeMirror {
+  background: var(--el-bg-color);
+  color: var(--el-text-color-primary);
+}
+
+html:root .v-md-editor .CodeMirror-gutters {
+  background: var(--el-bg-color-overlay);
+  border-right-color: var(--el-border-color);
+}
+
+html:root .v-md-editor .CodeMirror-cursor {
+  border-left-color: var(--el-text-color-primary);
+}
+
+html:root .v-md-editor .CodeMirror-activeline-background {
+  background: var(--el-fill-color-light);
+}
+
+html:root .v-md-editor__preview-wrapper,
+html:root .v-md-editor .markdown-body {
+  background: transparent;
+  color: var(--el-text-color-regular);
+}
+
+html:root .markdown-body h1,
+html:root .markdown-body h2,
+html:root .markdown-body h3,
+html:root .markdown-body h4,
+html:root .markdown-body h5,
+html:root .markdown-body h6,
+html:root .markdown-body strong {
+  color: var(--el-text-color-primary);
+}
+
+html:root .markdown-body a {
+  color: var(--el-color-primary-light-3);
+}
+
+html:root .markdown-body code,
+html:root .markdown-body pre {
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-primary);
+}
+
+html:root .markdown-body blockquote {
+  color: var(--el-text-color-secondary);
+  border-left-color: var(--el-border-color);
+}
+
+html:root .markdown-body table th,
+html:root .markdown-body table td,
+html:root .markdown-body table tr {
+  border-color: var(--el-border-color);
+  background: transparent;
+}
+
+html:root .markdown-body hr {
+  background-color: var(--el-border-color);
+}
+
 /* 尊重系统的减少动效设置 */
 @media (prefers-reduced-motion: reduce) {
   *,

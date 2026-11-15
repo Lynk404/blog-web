@@ -12,6 +12,9 @@ export async function confirmLogout(): Promise<boolean> {
       confirmButtonText: '退出',
       cancelButtonText: '取消',
       type: 'warning',
+      // 弹框期间蒙版挡住页面：点击蒙版或按 Esc 不关闭，只能明确选择退出或取消
+      closeOnClickModal: false,
+      closeOnPressEscape: false,
     })
   } catch {
     // 点击取消或关闭弹窗

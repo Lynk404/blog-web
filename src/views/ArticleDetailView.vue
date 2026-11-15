@@ -1,9 +1,14 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import Http from '../api'
 import { useUserStore } from '../stores/user'
-import type { ArticleDetail } from '../types/api'
+import type { ArticleDetail, Comment } from '../types/api'
+import { confirmAction } from '../utils/confirm'
+
+// Markdown 预览按需加载，避免进入首页时加载渲染库
+const MarkdownPreview = defineAsyncComponent(() => import('../components/MarkdownPreview.vue'))
 
 const route = useRoute()
 const router = useRouter()
@@ -16,6 +21,12 @@ const liking = ref(false)
 const hasLiked = ref(false)
 const commentText = ref('')
 const submittingComment = ref(false)
+const editingCommentId = ref<string | null>(null)
+const editingCommentText = ref('')
+const savingCommentId = ref<string | null>(null)
+
+const isAuthor = computed(() => !!article.value && user.isLoggedIn && article.value.author?._id === user.uid)
+const isCommentOwner = (c: Comment) => user.isLoggedIn && c.uid?._id === user.uid
 
 // 注意：GET /api/rest/articles/:id 每次调用阅读数 +1，只在进入页面时请求一次
 async function load() {
@@ -90,6 +101,71 @@ async function submitComment() {
   }
 }
 
+function startEditComment(c: Comment) {
+  editingCommentId.value = c._id
+  editingCommentText.value = c.content
+}
+
+function cancelEditComment() {
+  editingCommentId.value = null
+  editingCommentText.value = ''
+}
+
+async function saveComment(c: Comment) {
+  const content = editingCommentText.value.trim()
+  if (!content) {
+    ElMessage.warning('评论内容不能为空')
+    return
+  }
+  savingCommentId.value = c._id
+  try {
+    await Http({ type: 'putComment', data: { id: c._id, content } })
+    c.content = content
+    cancelEditComment()
+    ElMessage.success('评论已修改')
+  } catch {
+    // 错误已由 Http 弹出提示
+  } finally {
+    savingCommentId.value = null
+  }
+}
+
+async function removeComment(c: Comment) {
+  const ok = await confirmAction('确认删除这条评论？', '删除评论', '删除')
+  if (!ok || !article.value) return
+  try {
+    await Http({ type: 'deleteComment', data: { id: c._id } })
+    article.value.comments = article.value.comments.filter((x) => x._id !== c._id)
+    article.value.comment_num = Math.max(0, article.value.comment_num - 1)
+    ElMessage.success('评论已删除')
+  } catch {
+    // 错误已由 Http 弹出提示
+  }
+}
+
+function editArticle() {
+  if (!article.value) return
+  router.push({ name: 'article-edit', params: { id: article.value._id } })
+}
+
+async function removeArticle() {
+  if (!article.value) return
+  // 会同时删除该文章下的全部评论（包括他人的）
+  const ok = await confirmAction(
+    '删除后无法恢复，该文章下的全部评论也会被删除。确认删除？',
+    '删除文章',
+    '删除',
+  )
+  if (!ok) return
+  try {
+    await Http({ type: 'deleteArticle', data: { id: article.value._id } })
+    ElMessage.success('文章已删除')
+    router.push({ name: 'home' })
+  } catch {
+    // 错误已由 Http 弹出提示
+  }
+}
+
 // 仅在挂载与 id 真正变化时请求，不因重渲染重复计数
 onMounted(load)
 watch(() => route.params.id, load)
@@ -116,20 +192,48 @@ watch(() => route.params.id, load)
         <span>点赞 {{ article.like_num }}</span>
       </div>
 
-      <!-- 正文按纯文本显示，不渲染 HTML，避免 XSS -->
-      <div class="content">{{ article.content }}</div>
+      <!-- Markdown 经 v-md-editor 预览渲染，内置 xss 过滤 -->
+      <div class="content">
+        <MarkdownPreview :text="article.content" />
+      </div>
 
-      <div class="like">
+      <div class="actions">
         <el-button class="action" :loading="liking" :disabled="hasLiked" @click="like">
           {{ hasLiked ? '已点赞' : '点赞' }}
         </el-button>
+        <template v-if="isAuthor">
+          <el-button class="action" @click="editArticle">编辑</el-button>
+          <el-button class="action" type="danger" plain @click="removeArticle">删除</el-button>
+        </template>
       </div>
 
       <h3 class="comments-title">评论（{{ article.comments?.length ?? 0 }}）</h3>
       <el-empty v-if="!article.comments?.length" description="暂无评论" />
       <div v-for="c in article.comments" :key="c._id" class="comment">
-        <div class="comment-meta">{{ c.uid?.nikname ?? '匿名' }}</div>
-        <div class="comment-body">{{ c.content }}</div>
+        <div class="comment-meta">
+          <span>{{ c.uid?.nikname ?? '匿名' }}</span>
+          <template v-if="isCommentOwner(c) && editingCommentId !== c._id">
+            <el-button link class="comment-action" @click="startEditComment(c)">编辑</el-button>
+            <el-button link class="comment-action" type="danger" @click="removeComment(c)">
+              删除
+            </el-button>
+          </template>
+        </div>
+        <template v-if="editingCommentId === c._id">
+          <el-input v-model="editingCommentText" type="textarea" :rows="2" />
+          <div class="comment-edit-actions">
+            <el-button class="action" @click="cancelEditComment">取消</el-button>
+            <el-button
+              type="primary"
+              class="action"
+              :loading="savingCommentId === c._id"
+              @click="saveComment(c)"
+            >
+              保存
+            </el-button>
+          </div>
+        </template>
+        <div v-else class="comment-body">{{ c.content }}</div>
       </div>
 
       <div v-if="user.isLoggedIn" class="comment-form">
@@ -177,12 +281,13 @@ watch(() => route.params.id, load)
 }
 
 .content {
-  white-space: pre-wrap;
-  line-height: 1.8;
   min-height: 120px;
 }
 
-.like {
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
   margin: 20px 0;
 }
 
@@ -200,13 +305,27 @@ watch(() => route.params.id, load)
 }
 
 .comment-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 13px;
   color: var(--el-text-color-secondary);
   margin-bottom: 4px;
 }
 
+.comment-action {
+  min-height: 44px;
+}
+
 .comment-body {
   white-space: pre-wrap;
+}
+
+.comment-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
 }
 
 .comment-form {

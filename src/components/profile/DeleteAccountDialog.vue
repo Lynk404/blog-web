@@ -29,7 +29,13 @@ function submit() {
       await ElMessageBox.confirm(
         '注销后无法恢复。将删除你的全部专栏和文章（包括他人在你专栏中发表的文章），以及他人在你文章下的评论。',
         '确认注销账号？',
-        { confirmButtonText: '确认注销', cancelButtonText: '取消', type: 'error' },
+        {
+          confirmButtonText: '确认注销',
+          cancelButtonText: '取消',
+          type: 'error',
+          closeOnClickModal: false,
+          closeOnPressEscape: false,
+        },
       )
     } catch {
       // 取消

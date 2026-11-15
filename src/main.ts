@@ -1,4 +1,9 @@
 import './assets/main.css'
+// ElMessage / ElMessageBox / ElNotification 为函数式 API，按需导入不会带上样式，需在此显式引入
+import 'element-plus/theme-chalk/el-message.css'
+import 'element-plus/theme-chalk/el-message-box.css'
+import 'element-plus/theme-chalk/el-notification.css'
+import 'element-plus/theme-chalk/el-overlay.css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'

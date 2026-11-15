@@ -29,9 +29,9 @@ npm run format       # prettier --write src/
 ## 代码库现状
 
 - 技术栈：Vue 3 + TypeScript（`<script setup lang="ts">`）+ Vite 8 + Pinia + Vue Router + Element Plus（按需导入）。
-- 已完成：布局与路由、只读浏览、登录注册、自动登录、头像菜单、个人主页（独立页面）、退出二次确认、登录注册卡片与居中、深色主题，以及写入功能（评论、点赞、发布文章、新建专栏、编辑资料、头像、改密码、注销）。类型检查与构建通过。
-- **接口层已验证**（后端在线）：只读接口与未登录 401 已验证；写接口（发评论、点赞、建专栏、发文章、改资料、上传头像、改密码、注销）已用临时账号联调，32 项全部通过（测试脚本在项目外，未入库）。**未做浏览器端到端测试**，登录、自动登录、头像菜单、个人主页与写入页面的交互尚未在浏览器中验证。
-- 已实现页面：首页（文章列表、搜索、分页、登录后写文章入口）、发布文章（登录，仅本人专栏）、文章详情（正文、评论、点赞、发表评论）、专栏列表（登录后新建专栏）、专栏详情、个人主页（资料、头像、编辑资料、改密码、注销）、登录、注册、404。
+- 已完成：布局与路由、只读浏览、登录注册、自动登录、头像菜单、个人主页（独立页面）、退出二次确认、登录注册卡片与居中、深色主题，以及写入功能（评论、点赞、发布文章、新建专栏、编辑资料、头像、改密码、注销），编辑与删除（文章、评论、专栏，含级联提示），Markdown 编辑与预览（v-md-editor），路由顶部进度条（nprogress）。类型检查与构建通过。
+- **接口层已验证**（后端在线）：只读接口与未登录 401 已验证；写接口（发评论、点赞、建专栏、发文章、改资料、上传头像、改密码、注销）已用临时账号联调，32 项全部通过（测试脚本在项目外，未入库）。编辑与删除接口（文章、评论、专栏，含级联）另用临时账号验证，21 项中 20 项通过；未通过的一项是测试断言写错（阅读数应为 0，后端行为正确）。**未做浏览器端到端测试**，登录、自动登录、头像菜单、个人主页、写入页面、Markdown 编辑器与进度条的交互尚未在浏览器中验证。
+- 已实现页面：首页（文章列表、搜索、分页、登录后写文章入口）、发布文章与编辑文章（登录，`article-create` 与 `article-edit` 复用同一组件，仅本人专栏可发布）、文章详情（Markdown 正文、评论增删改、点赞、发表评论，作者可编辑或删除文章）、专栏列表（登录后新建专栏）、专栏详情（作者可改名、删除）、个人主页（资料、头像、编辑资料、改密码、注销）、登录、注册、404。
 - 已删除（经用户确认）：`src/views/AboutView.vue`；模板遗留的 `src/components/HelloWorld.vue`、`TheWelcome.vue`、`WelcomeItem.vue`、`components/icons/*`、`src/stores/counter.ts`、`src/assets/base.css`、`src/assets/logo.svg`。
 - `src/plugins/http.js` 在工作区中已删除（`git status` 显示 `D`），`src/plugins/` 为空目录。
 - 服务端契约文档 `docs/integration/frontend-handoff.md` 是接口的权威来源。`docs/api/` 为后端侧参考。
@@ -51,15 +51,18 @@ npm run format       # prettier --write src/
 - `vite.config.ts` 中通过 `unplugin-auto-import` 与 `unplugin-vue-components` 配合 `ElementPlusResolver` 实现按需导入，样式随组件加载。
 - 自动生成文件 `src/auto-imports.d.ts`、`src/components.d.ts` 由插件产生，勿手改。
 - 模板中直接使用 `el-*` 组件。**指令（如 `v-loading`）未确认会自动导入，避免使用**，改用 `el-skeleton` 等组件表达加载状态。
+- **函数式 API**（`ElMessage`、`ElMessageBox`、`ElNotification`）不会自动带上样式，已在 `src/main.ts` 显式引入对应的 `theme-chalk` 样式（message、message-box、notification、overlay）。新增其他函数式 API 时需同样处理，否则弹框无样式、无蒙版。
+- 退出登录、注销账号的确认框禁止点击蒙版和 Esc 关闭（`closeOnClickModal: false`、`closeOnPressEscape: false`），弹框期间不允许其他操作。
 
 ### 路由与布局
 
 - `src/router/index.ts` 有两组布局：
-  - **主站** `AppLayout`（`src/layouts/AppLayout.vue`，顶部导航 + 右侧头像菜单）：`home`、`article-detail`、`article-create`（需登录）、`columns`、`column-detail`。
+  - **主站** `AppLayout`（`src/layouts/AppLayout.vue`，顶部导航 + 右侧头像菜单）：`home`、`article-detail`、`article-create`（需登录）、`article-edit`（需登录）、`columns`、`column-detail`。
   - **独立页面** `AuthLayout`（`src/layouts/AuthLayout.vue`，无导航栏，仅左上角 logo `src/components/AppBrand.vue` 返回首页）：`login`、`register`（`guestOnly`，路由 meta `centered: true`，内容上下左右居中），以及 `profile`（`/me`，`requiresAuth`，顶部对齐）。
 - 未匹配路径进入 `not-found`。
 - 页面组件一律懒加载，路径为 `() => import('../views/Xxx.vue')`。
 - `router.beforeEach`：`requiresAuth` 未登录 → 登录页（携带 `redirect`）；`guestOnly` 已登录 → 首页。
+- 顶部进度条：`beforeEach` 调用 `NProgress.start()`，`afterEach` 与 `onError` 调用 `NProgress.done()`。进度条样式在 `main.css`。
 - 登录后跳转 `redirect`，由 `src/utils/redirect.ts` 的 `safeRedirect` 校验：仅接受以 `/` 开头且非 `//` 的站内路径。
 
 ### 登录态与自动登录
@@ -95,9 +98,10 @@ npm run format       # prettier --write src/
 
 - 类型定义集中在 `src/types/api.ts`（`Pagination`、`ArticleBrief`、`ArticleDetail`、`Comment`、`Column`、`AuthResult` 等），与后端 populate 后的字段对应。
 - 首页：关键词为空走 `articles`，否则走 `search`（参数 `query: { q }`）。每页 10 条。
-- 文章正文按**纯文本**显示（`white-space: pre-wrap`），不渲染 HTML。若将来引入富文本，必须先做净化（sanitize）。
+- 文章正文为 **Markdown**，由 `src/components/MarkdownPreview.vue`（v-md-editor 预览）渲染。预览内置 xss 过滤，**不得关闭**。编辑器为 `src/components/MarkdownEditor.vue`。两者均为懒加载，只在需要的页面加载。若新增渲染入口，必须经过同一预览组件或同等净化，不得直接 `v-html`。
+- **编辑器内核由调用方注入**：v-md-editor 2.x 不内置 CodeMirror，`MarkdownEditor.vue` 通过组件选项 `Codemirror` 注入 `codemirror`（5.x，已作为直接依赖）。未注入时编辑器内部报 `reading 'doc'` 错误。库默认 `scrollbarStyle: 'overlay'` 需额外插件，这里改为 `native`。
 - 文章详情与专栏详情只在挂载及 `route.params.id` 变化时请求，不在渲染中请求（`GET /api/rest/articles/:id` 每次调用阅读数 +1）。
-- 专栏列表与详情中的 `aids` 为 populate 后的文章；专栏详情未做分页，分页行为待用 curl 验证。
+- 专栏列表与详情中的 `aids` 为 populate 后的文章；专栏详情为单条查询，**不分页**，返回全部文章（已用 `GET /api/rest/columns/:id` 确认）。
 
 ### 加密
 
@@ -112,6 +116,7 @@ npm run format       # prettier --write src/
 - `src/utils/storage.ts` 是 `localStorage` 薄封装，替代了原先未声明依赖的 `store` 包。
 - `src/stores/user.ts`（Pinia setup store `user`）提供 `isLoggedIn`、`uid`、`profile`（`UserProfile`）以及 `login()`、`setProfile()`、`logout()`。
 - `src/utils/session.ts` 提供 `refreshProfile()` 与 `restoreSession()`。
+- `src/utils/confirm.ts` 的 `confirmAction()` 用于删除等危险操作的二次确认，蒙版期间禁止点击蒙版与 Esc 关闭。
 
 ### 视觉规范（深色主题）
 
@@ -120,6 +125,8 @@ npm run format       # prettier --write src/
 - 字体：系统无衬线字体栈。衬线字体方案已确认**暂不采用**，以后再说。
 - 可访问性：键盘焦点使用 `:focus-visible` 的可见轮廓；交互控件最小点击区域 44px（头像触发器、认证按钮）；尊重 `prefers-reduced-motion`。
 - 图标使用 Element Plus 组件，不使用 emoji。
+- 可点击卡片（`shadow="hover"`）的悬停反馈由 `main.css` 的 `.el-card.is-hover-shadow:hover` 提供（边框主题蓝、背景提亮）。Element Plus 默认悬停阴影在深色背景上几乎不可见，不要依赖它。
+- 顶部进度条（nprogress）使用强调色，选择器为 `html:root #nprogress .bar`（`main.css`）。Markdown 编辑器与预览的深色覆盖同样在 `main.css`（`.v-md-editor`、`.markdown-body`、工具栏按钮 `.v-md-editor__toolbar-item` 及其 `--active` 状态、下拉菜单 `.v-md-editor__menu`）。**这些选择器必须带 `html:root` 前缀**：库样式在懒加载分包中后加载，同等特异性会被覆盖（曾因此出现白色编辑器背景）。
 
 ### 接口行为注意
 
@@ -130,7 +137,10 @@ npm run format       # prettier --write src/
 - `content` 发送前需 `encodeURIComponent`（仅文章；服务端对文章做 `decodeURIComponent`，评论不做此处理）。
 - `PUT /user` 可改字段为 `nikname`、`email`、`avatar`、`password`，**不含 `signature`**，个人主页不提供签名编辑。
 - 改密码后旧 token 失效存在同秒窗口：签发与改密码在同一秒内的旧 token 仍可能有效（后端 `iat` 精度为秒）。前端改密码成功后立即清除本地登录态。
-- 点赞接口后端不做去重，前端仅在文章详情页内限制成功点赞一次（刷新页面后可再次点击）。
+- 点赞接口后端不做去重，前端仅在文章详情页内限制成功点赞一次（刷新页面后可再次点击）。该决定已确认保留。
+- 文章编辑（`PUT /api/rest/articles/:id`）只允许修改 `title`、`content`，所属专栏不可改，编辑页的专栏选择为只读。编辑页取数使用列表接口 `GET /api/rest/articles?query[_id]=<id>`，**不使用单条接口**（单条接口会增加阅读数）。
+- 服务端对文章 `content` 的 setter 会把 `"` 替换为 `'`，Markdown 正文中的双引号会变成单引号（后端既有行为）。
+- 评论的编辑与删除仅作者可见入口（`PUT`、`DELETE /api/rest/comments/:id`，后端 403 或 400 校验）。
 - 发布文章只能选本人专栏（列表按 `uid` 筛选，取前 100 条）；他人专栏返回 403。
 
 ### 配置与表单
@@ -138,6 +148,18 @@ npm run format       # prettier --write src/
 - `src/config/form.config.ts`、`modal.config.ts`、`validate.config.ts` 定义表单字段、弹窗按钮与校验规则（校验规则类型为 Element Plus 的 `FormRules`）。登录页、注册页已使用。
 - 登录只做必填校验（已有账号的密码可能不符合注册规则）；注册使用 `validate.config.ts` 的完整规则。编辑资料使用其中的 `nikname` 与 `email` 规则。
 - `form.config.ts` 中 `userInfo.signature` 的 `type` 写为 `'txt'`，属于已存在的写法，后续若需要多行输入需统一修正。
+
+## 待实现功能
+
+- **个人与他人页面**：
+  - "我的文章"列表：`GET /api/rest/articles?query[author]=<uid>` 已验证可用（返回 23 篇）。
+  - 用户公开页 `/users/:id`：`GET /api/rest/users/:id` 已验证可用（仅返回 `nikname`、`avatar`、`signature`），文章作者名可点击进入。
+- **列表与数据量**：
+  - 专栏列表只取前 100 条，发布页与编辑页的专栏下拉受此限制，需要分页或搜索。
+  - 文章评论全部内嵌在详情接口中，无分页；评论多时需要后端或前端方案。
+- **文章封面与图片**：`cover` 字段与 `POST /upload/article` 后端已支持，前端未做。编辑器中的图片目前只能使用外部地址的 Markdown 语法。
+- **未决定事项**：环境变量说明、部署方案、衬线字体（已确认暂缓）。
+- **验证**：浏览器端到端测试尚未做，按 `docs/integration/manual-checklist.md` 逐项走，重点是第 4 至 7 节。
 
 ## 约定（沿用并更新自 README）
 

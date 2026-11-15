@@ -1,7 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
 import { useUserStore } from '../stores/user'
 import AppLayout from '../layouts/AppLayout.vue'
 import AuthLayout from '../layouts/AuthLayout.vue'
+
+// 顶部进度条：每次路由跳转开始时显示，完成或出错时结束（无转圈图标）
+NProgress.configure({ showSpinner: false })
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -31,6 +36,12 @@ const router = createRouter({
           // 静态路径写在 articles/:id 之前，避免 new 被当作文章 id
           path: 'articles/new',
           name: 'article-create',
+          component: () => import('../views/ArticleCreateView.vue'),
+          meta: { requiresAuth: true },
+        },
+        {
+          path: 'articles/:id/edit',
+          name: 'article-edit',
           component: () => import('../views/ArticleCreateView.vue'),
           meta: { requiresAuth: true },
         },
@@ -85,6 +96,7 @@ const router = createRouter({
 })
 
 router.beforeEach((to) => {
+  NProgress.start()
   const user = useUserStore()
   if (to.meta.requiresAuth && !user.isLoggedIn) {
     return { name: 'login', query: { redirect: to.fullPath } }
@@ -93,6 +105,14 @@ router.beforeEach((to) => {
     return { name: 'home' }
   }
   return true
+})
+
+router.afterEach(() => {
+  NProgress.done()
+})
+
+router.onError(() => {
+  NProgress.done()
 })
 
 export default router

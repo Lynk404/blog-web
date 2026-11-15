@@ -34,6 +34,12 @@ const API_LIST = {
   uploadArticle: { url: '/upload/article', method: 'POST' },
   uploadUserAvatar: { url: '/upload/user', method: 'POST' },
   likeArticle: { url: '/articles/likes/:id', method: 'POST', rest: true },
+  putArticle: { url: '/api/rest/articles/:id', method: 'PUT', rest: true },
+  deleteArticle: { url: '/api/rest/articles/:id', method: 'DELETE', rest: true },
+  putComment: { url: '/api/rest/comments/:id', method: 'PUT', rest: true },
+  deleteComment: { url: '/api/rest/comments/:id', method: 'DELETE', rest: true },
+  putColumn: { url: '/api/rest/columns/:id', method: 'PUT', rest: true },
+  deleteColumn: { url: '/api/rest/columns/:id', method: 'DELETE', rest: true },
 } satisfies Record<string, ApiEntry>
 
 export type ApiType = keyof typeof API_LIST

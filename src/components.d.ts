@@ -38,6 +38,8 @@ declare module 'vue' {
     ElSelect: typeof import('element-plus/es')['ElSelect']
     ElSkeleton: typeof import('element-plus/es')['ElSkeleton']
     ElUpload: typeof import('element-plus/es')['ElUpload']
+    MarkdownEditor: typeof import('./components/MarkdownEditor.vue')['default']
+    MarkdownPreview: typeof import('./components/MarkdownPreview.vue')['default']
     PasswordDialog: typeof import('./components/profile/PasswordDialog.vue')['default']
     ProfileEditDialog: typeof import('./components/profile/ProfileEditDialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
