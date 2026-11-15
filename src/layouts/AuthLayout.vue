@@ -1,6 +1,11 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
+import { computed } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
 import AppBrand from '../components/AppBrand.vue'
+
+const route = useRoute()
+// 路由 meta.centered 为 true 时，内容在主区域内上下左右居中（登录、注册）
+const centered = computed(() => route.meta.centered === true)
 </script>
 
 <template>
@@ -8,7 +13,7 @@ import AppBrand from '../components/AppBrand.vue'
     <el-header class="auth-header">
       <AppBrand />
     </el-header>
-    <el-main class="auth-main">
+    <el-main class="auth-main" :class="{ 'is-centered': centered }">
       <RouterView />
     </el-main>
   </el-container>
@@ -29,5 +34,13 @@ import AppBrand from '../components/AppBrand.vue'
   display: flex;
   justify-content: center;
   padding-top: 48px;
+}
+
+.auth-main.is-centered {
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 24px 16px;
 }
 </style>

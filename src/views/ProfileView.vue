@@ -1,9 +1,18 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { refreshProfile } from '../utils/session'
+import { confirmLogout } from '../utils/logout'
 import { useUserStore } from '../stores/user'
 
+const router = useRouter()
 const user = useUserStore()
+
+async function handleLogout() {
+  if (await confirmLogout()) {
+    router.push({ name: 'home' })
+  }
+}
 const loading = ref(false)
 const profile = computed(() => user.profile)
 const avatarText = computed(() => profile.value?.nikname?.charAt(0) ?? '')
@@ -31,6 +40,7 @@ onMounted(async () => {
           <h2 class="nickname">{{ profile.nikname }}</h2>
           <div class="username">@{{ profile.username }}</div>
         </div>
+        <el-button class="logout" @click="handleLogout">退出登录</el-button>
       </div>
 
       <el-descriptions :column="1" border>
@@ -63,6 +73,11 @@ onMounted(async () => {
 
 .nickname {
   margin: 0;
+}
+
+.logout {
+  margin-left: auto;
+  min-height: 44px;
 }
 
 .username {

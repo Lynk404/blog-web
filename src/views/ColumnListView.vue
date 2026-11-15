@@ -52,7 +52,7 @@ onMounted(load)
 
 .meta {
   font-size: 13px;
-  color: #909399;
+  color: var(--el-text-color-secondary);
   margin-top: 6px;
 }
 </style>

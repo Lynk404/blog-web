@@ -74,6 +74,6 @@ watch(() => route.params.id, load)
   display: flex;
   gap: 16px;
   font-size: 13px;
-  color: #909399;
+  color: var(--el-text-color-secondary);
 }
 </style>

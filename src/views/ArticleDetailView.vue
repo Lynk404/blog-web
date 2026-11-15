@@ -82,7 +82,7 @@ watch(() => route.params.id, load)
   flex-wrap: wrap;
   gap: 16px;
   font-size: 13px;
-  color: #909399;
+  color: var(--el-text-color-secondary);
   margin-bottom: 20px;
 }
 
@@ -98,12 +98,12 @@ watch(() => route.params.id, load)
 
 .comment {
   padding: 12px 0;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid var(--el-border-color-lighter);
 }
 
 .comment-meta {
   font-size: 13px;
-  color: #909399;
+  color: var(--el-text-color-secondary);
   margin-bottom: 4px;
 }
 

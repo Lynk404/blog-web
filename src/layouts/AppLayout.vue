@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import AppBrand from '../components/AppBrand.vue'
 import { useUserStore } from '../stores/user'
+import { confirmLogout } from '../utils/logout'
 
 const router = useRouter()
 const route = useRoute()
@@ -11,13 +12,12 @@ const user = useUserStore()
 const activeIndex = computed(() => (route.path.startsWith('/columns') ? '/columns' : '/'))
 const avatarText = computed(() => user.profile?.nikname?.charAt(0) ?? '')
 
-function handleUserCommand(command: string) {
+async function handleUserCommand(command: string) {
   if (command === 'profile') {
     router.push({ name: 'profile' })
     return
   }
-  if (command === 'logout') {
-    user.logout()
+  if (command === 'logout' && (await confirmLogout())) {
     router.push({ name: 'home' })
   }
 }

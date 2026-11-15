@@ -40,8 +40,9 @@ function submit() {
 
 <template>
   <div class="auth-page">
-    <h2>{{ modal.title }}</h2>
-    <el-form ref="formRef" :model="form" :rules="VALIDATE_CONFIG" label-position="top" @submit.prevent="submit">
+    <el-card class="auth-card" shadow="always">
+      <h2 class="auth-title">{{ modal.title }}</h2>
+      <el-form ref="formRef" :model="form" :rules="VALIDATE_CONFIG" label-position="top" @submit.prevent="submit">
       <el-form-item v-for="field in fields" :key="field.query" :label="field.label" :prop="field.query">
         <el-input
           v-model="form[field.query]"
@@ -57,13 +58,21 @@ function submit() {
         <RouterLink :to="{ name: 'login' }">已有账号？去登录</RouterLink>
       </div>
     </el-form>
+    </el-card>
   </div>
 </template>
 
 <style scoped>
 .auth-page {
-  max-width: 400px;
-  margin: 40px auto;
+  width: 400px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.auth-title {
+  margin: 0 0 20px;
+  font-size: 22px;
+  font-weight: 600;
 }
 
 .actions {

@@ -36,7 +36,7 @@ blog-web/
 │   ├── assets/                # 参与构建的静态资源（main.css 为全局样式）
 │   ├── components/            # AppBrand.vue（logo）；其余为模板遗留组件（待清理，见 CLAUDE.md）
 │   ├── config/                # 接口表、基础配置、表单与弹窗、校验规则
-│   ├── layouts/               # AppLayout.vue（顶部导航 + 头像菜单）、AuthLayout.vue（登录注册，无导航）
+│   ├── layouts/               # AppLayout.vue（顶部导航 + 头像菜单）、AuthLayout.vue（登录、注册、个人主页，无导航）
 │   ├── router/                # 路由配置与守卫
 │   ├── stores/                # Pinia 状态（user.ts）
 │   ├── types/                 # 接口数据类型（api.ts）
@@ -127,7 +127,7 @@ npm run dev
 
 ### 路由
 
-- 路由配置集中在 `src/router/index.ts`。主站页面挂载在 `AppLayout`（带顶部导航）下，登录与注册挂载在 `AuthLayout`（无导航）下，未匹配路径进入 404 页面。
+- 路由配置集中在 `src/router/index.ts`。主站页面挂载在 `AppLayout`（带顶部导航）下；登录、注册、个人主页挂载在 `AuthLayout`（无导航）下，未匹配路径进入 404 页面。
 - 页面组件使用懒加载：`component: () => import('../views/Xxx.vue')`。
 - `meta.requiresAuth` 标记需登录页面，`meta.guestOnly` 标记仅未登录可访问的页面（登录、注册）。守卫在 `router.beforeEach` 中处理。
 - 登录后的跳转地址经 `src/utils/redirect.ts` 的 `safeRedirect` 校验，仅允许站内路径。
@@ -140,7 +140,7 @@ npm run dev
 | `/articles/:id` | 文章详情 | 正文（纯文本显示）与内嵌评论 |
 | `/columns` | 专栏列表 | |
 | `/columns/:id` | 专栏详情 | 专栏下文章（未分页） |
-| `/me` | 个人主页 | 需登录，只读展示资料与文章、专栏数量 |
+| `/me` | 个人主页 | 需登录，独立页面（无导航栏），只读展示资料与文章、专栏数量，提供退出登录按钮 |
 | `/login` | 登录 | 独立页面，无导航栏，仅做必填校验 |
 | `/register` | 注册 | 独立页面，使用 `validate.config.ts` 完整规则 |
 | 其他 | 404 | |
@@ -148,12 +148,12 @@ npm run dev
 ### 登录与自动登录
 
 - 登录态保存在 `localStorage`（token 键 `ua_jot`），刷新页面后自动恢复：启动时调用 `GET /index` 校验，通过后拉取 `GET /user/` 资料。
-- 已登录时顶部右侧显示头像，点击打开菜单：个人主页、退出登录。未登录显示"登录""注册"。
-- 登录、注册页不显示顶部导航栏，左上角 logo 可返回首页。
+- 已登录时顶部右侧显示头像，点击打开菜单：个人主页、退出登录。未登录显示"登录""注册"。退出登录均需在弹出框中确认。
+- 登录、注册、个人主页不显示顶部导航栏，左上角 logo 可返回首页。登录与注册内容放在卡片中。
 
 ### 视觉
 
-- 深色主题，配色与变量定义见 `src/assets/main.css`。字体为系统无衬线字体。
+- 深色主题（中性灰 + 蓝色强调），配色与变量定义见 `src/assets/main.css`。字体为系统无衬线字体。
 
 ### 依赖管理
 

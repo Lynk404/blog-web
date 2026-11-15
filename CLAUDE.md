@@ -29,7 +29,7 @@ npm run format       # prettier --write src/
 ## 代码库现状
 
 - 技术栈：Vue 3 + TypeScript（`<script setup lang="ts">`）+ Vite 8 + Pinia + Vue Router + Element Plus（按需导入）。
-- 第一里程碑（布局、路由、只读浏览、登录注册）与第二里程碑（独立认证页、自动登录、头像菜单、个人主页、深色主题）已完成，类型检查与构建通过。
+- 前两个里程碑（布局、路由、只读浏览、登录注册、自动登录、头像菜单、个人主页、深色主题）及其后续调整（个人主页独立页面、退出二次确认、登录注册卡片、配色统一）已完成，类型检查与构建通过。
 - **运行时仅做了接口层的只读验证**（后端在线）：`GET /index` 未登录返回 401，`GET /user` 未登录返回 401，`GET /keys` 返回 200。**未做浏览器端到端测试**，登录、自动登录、头像菜单、个人主页的页面行为尚未在浏览器中验证。
 - 已实现页面：首页（文章列表、搜索、分页）、文章详情（正文与内嵌评论）、专栏列表、专栏详情、个人主页（只读）、登录、注册、404。
 - 已删除：`src/views/AboutView.vue`（经用户确认）。
@@ -60,8 +60,8 @@ npm run format       # prettier --write src/
 ### 路由与布局
 
 - `src/router/index.ts` 有两组布局：
-  - **主站** `AppLayout`（`src/layouts/AppLayout.vue`，顶部导航 + 右侧头像菜单）：`home`、`article-detail`、`columns`、`column-detail`、`profile`（`/me`，`requiresAuth`）。
-  - **认证页** `AuthLayout`（`src/layouts/AuthLayout.vue`，无导航栏，仅左上角 logo `src/components/AppBrand.vue` 返回首页）：`login`、`register`（`guestOnly`）。
+  - **主站** `AppLayout`（`src/layouts/AppLayout.vue`，顶部导航 + 右侧头像菜单）：`home`、`article-detail`、`columns`、`column-detail`。
+  - **独立页面** `AuthLayout`（`src/layouts/AuthLayout.vue`，无导航栏，仅左上角 logo `src/components/AppBrand.vue` 返回首页）：`login`、`register`（`guestOnly`，路由 meta `centered: true`，内容上下左右居中），以及 `profile`（`/me`，`requiresAuth`，顶部对齐）。
 - 未匹配路径进入 `not-found`。
 - 页面组件一律懒加载，路径为 `() => import('../views/Xxx.vue')`。
 - `router.beforeEach`：`requiresAuth` 未登录 → 登录页（携带 `redirect`）；`guestOnly` 已登录 → 首页。
@@ -74,7 +74,7 @@ npm run format       # prettier --write src/
 - `restoreSession`（`src/utils/session.ts`）：存在 token 时调用 `GET /index` 校验，成功后调用 `refreshProfile()`（`GET /user/`）写入 store。401 由拦截器清除登录态；网络错误时保留登录态，避免离线时误登出。
 - 登录、注册成功后同样调用 `refreshProfile()`，失败不阻断登录流程。
 - 头像区域：已登录显示头像（无头像用昵称首字），点击弹出下拉菜单（个人主页、退出登录）；未登录显示"登录""注册"按钮。
-- 退出登录调用 `useUserStore().logout()`，清除 token、uid 与资料。
+- 退出登录统一经 `src/utils/logout.ts` 的 `confirmLogout()`：先弹出 `ElMessageBox` 二次确认，确认后调用 `useUserStore().logout()` 清除 token、uid 与资料。头像菜单与个人主页均使用此入口。
 - 登录后跳转 `redirect`，由 `src/utils/redirect.ts` 的 `safeRedirect` 校验：仅接受以 `/` 开头且非 `//` 的站内路径。
 - 401 处理：`src/api/request.ts` 的响应拦截器对 401 调用 `useUserStore().logout()`，再调用由 `main.ts` 通过 `setUnauthorizedHandler` 注册的处理函数（跳转 `login`，已在登录页则不重复跳转）。注册而非直接 import router，避免循环依赖。
 - 启动阶段（`restoreSession`）发生的 401 发生在注册 handler 之前，因此只清除登录态，不跳转。
@@ -122,7 +122,7 @@ npm run format       # prettier --write src/
 ### 视觉规范（深色主题）
 
 - 样式集中在 `src/assets/main.css`，使用 `html:root` 覆盖 Element Plus 的 `--el-*` 变量（优先级高于库自带的 `:root` 定义，避免加载顺序影响覆盖）。
-- 配色：背景 `#0F172A`，卡片/浮层 `#111827` / `#1E293B`，边框 `#334155`，主文字 `#F8FAFC`，次要文字 `#94A3B8`，强调色 `#2563EB`。
+- 配色：中性灰 + 蓝色强调。灰阶取自 Element Plus 原生深色主题（背景 `#0a0a0a`，卡片 `#141414`，浮层 `#1d1e1f`，边框 `#4c4d4f`，主文字 `#e5eaf3`），强调色 `#2563EB`。顶部菜单变量 `--el-menu-*` 在 `main.css` 中显式定义。页面中禁止硬编码颜色，统一使用 `var(--el-*)`。
 - 字体：系统无衬线字体栈。衬线字体方案已确认**暂不采用**，以后再说。
 - 可访问性：键盘焦点使用 `:focus-visible` 的可见轮廓；交互控件最小点击区域 44px（头像触发器、认证按钮）；尊重 `prefers-reduced-motion`。
 - 图标使用 Element Plus 组件，不使用 emoji。

@@ -9,6 +9,8 @@ declare module 'vue-router' {
     requiresAuth?: boolean
     /** 仅未登录用户可访问（登录、注册页） */
     guestOnly?: boolean
+    /** 认证布局中内容上下左右居中（仅登录、注册） */
+    centered?: boolean
   }
 }
 
@@ -40,30 +42,30 @@ const router = createRouter({
           name: 'column-detail',
           component: () => import('../views/ColumnDetailView.vue'),
         },
+      ],
+    },
+    // 独立页面：不显示顶部导航栏，仅保留左上角 logo（登录、注册、个人主页）
+    {
+      path: '/',
+      component: AuthLayout,
+      children: [
         {
           path: 'me',
           name: 'profile',
           component: () => import('../views/ProfileView.vue'),
           meta: { requiresAuth: true },
         },
-      ],
-    },
-    // 认证页：独立布局，不显示顶部导航栏，仅保留左上角 logo
-    {
-      path: '/',
-      component: AuthLayout,
-      children: [
         {
           path: 'login',
           name: 'login',
           component: () => import('../views/LoginView.vue'),
-          meta: { guestOnly: true },
+          meta: { guestOnly: true, centered: true },
         },
         {
           path: 'register',
           name: 'register',
           component: () => import('../views/RegisterView.vue'),
-          meta: { guestOnly: true },
+          meta: { guestOnly: true, centered: true },
         },
       ],
     },
