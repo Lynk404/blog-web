@@ -29,7 +29,7 @@ npm run format       # prettier --write src/
 ## 代码库现状
 
 - 技术栈：Vue 3 + TypeScript（`<script setup lang="ts">`）+ Vite 8 + Pinia + Vue Router + Element Plus（按需导入）。
-- 前两个里程碑（布局、路由、只读浏览、登录注册、自动登录、头像菜单、个人主页、深色主题）及其后续调整（个人主页独立页面、退出二次确认、登录注册卡片、配色统一）已完成，类型检查与构建通过。
+- 已完成：布局与路由、只读浏览、登录注册、自动登录、头像菜单、个人主页（独立页面）、退出二次确认、登录注册卡片与居中、深色主题。类型检查与构建通过。
 - **运行时仅做了接口层的只读验证**（后端在线）：`GET /index` 未登录返回 401，`GET /user` 未登录返回 401，`GET /keys` 返回 200。**未做浏览器端到端测试**，登录、自动登录、头像菜单、个人主页的页面行为尚未在浏览器中验证。
 - 已实现页面：首页（文章列表、搜索、分页）、文章详情（正文与内嵌评论）、专栏列表、专栏详情、个人主页（只读）、登录、注册、404。
 - 已删除：`src/views/AboutView.vue`（经用户确认）。
@@ -75,7 +75,6 @@ npm run format       # prettier --write src/
 - 登录、注册成功后同样调用 `refreshProfile()`，失败不阻断登录流程。
 - 头像区域：已登录显示头像（无头像用昵称首字），点击弹出下拉菜单（个人主页、退出登录）；未登录显示"登录""注册"按钮。
 - 退出登录统一经 `src/utils/logout.ts` 的 `confirmLogout()`：先弹出 `ElMessageBox` 二次确认，确认后调用 `useUserStore().logout()` 清除 token、uid 与资料。头像菜单与个人主页均使用此入口。
-- 登录后跳转 `redirect`，由 `src/utils/redirect.ts` 的 `safeRedirect` 校验：仅接受以 `/` 开头且非 `//` 的站内路径。
 - 401 处理：`src/api/request.ts` 的响应拦截器对 401 调用 `useUserStore().logout()`，再调用由 `main.ts` 通过 `setUnauthorizedHandler` 注册的处理函数（跳转 `login`，已在登录页则不重复跳转）。注册而非直接 import router，避免循环依赖。
 - 启动阶段（`restoreSession`）发生的 401 发生在注册 handler 之前，因此只清除登录态，不跳转。
 

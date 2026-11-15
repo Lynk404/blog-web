@@ -40,7 +40,7 @@ blog-web/
 │   ├── router/                # 路由配置与守卫
 │   ├── stores/                # Pinia 状态（user.ts）
 │   ├── types/                 # 接口数据类型（api.ts）
-│   ├── utils/                 # storage（localStorage 封装）、encrypt（RSA 加密）、redirect（跳转校验）、session（自动登录与资料）
+│   ├── utils/                 # storage（localStorage 封装）、encrypt（RSA 加密）、redirect（跳转校验）、session（自动登录与资料）、logout（退出确认）
 │   ├── views/                 # 页面：首页、文章详情、专栏列表/详情、个人主页、登录、注册、404
 │   ├── auto-imports.d.ts      # 自动生成（unplugin-auto-import），勿手改
 │   ├── components.d.ts        # 自动生成（unplugin-vue-components），勿手改
@@ -102,7 +102,7 @@ npm run dev
 
 - 统一使用 **Composition API** + `<script setup lang="ts">`，禁止 Options API。
 - 组件名使用 PascalCase，文件名与组件名一致。
-- 样式使用 `<style scoped>`，全局样式放在 `src/style.css` 或 `src/assets/`。
+- 样式使用 `<style scoped>`，全局样式统一放在 `src/assets/main.css`。
 - Element Plus 组件通过 `unplugin-vue-components` 按需自动导入，模板中直接使用即可，无需手动 import。
 - 同一逻辑在两个及以上页面复用时，抽取为 `composables/useXxx.ts`。
 
@@ -129,7 +129,7 @@ npm run dev
 
 - 路由配置集中在 `src/router/index.ts`。主站页面挂载在 `AppLayout`（带顶部导航）下；登录、注册、个人主页挂载在 `AuthLayout`（无导航）下，未匹配路径进入 404 页面。
 - 页面组件使用懒加载：`component: () => import('../views/Xxx.vue')`。
-- `meta.requiresAuth` 标记需登录页面，`meta.guestOnly` 标记仅未登录可访问的页面（登录、注册）。守卫在 `router.beforeEach` 中处理。
+- `meta.requiresAuth` 标记需登录页面（个人主页），`meta.guestOnly` 标记仅未登录可访问的页面（登录、注册），`meta.centered` 标记认证布局中内容需上下居中的页面（登录、注册）。守卫在 `router.beforeEach` 中处理。
 - 登录后的跳转地址经 `src/utils/redirect.ts` 的 `safeRedirect` 校验，仅允许站内路径。
 
 ### 已实现页面
@@ -149,7 +149,7 @@ npm run dev
 
 - 登录态保存在 `localStorage`（token 键 `ua_jot`），刷新页面后自动恢复：启动时调用 `GET /index` 校验，通过后拉取 `GET /user/` 资料。
 - 已登录时顶部右侧显示头像，点击打开菜单：个人主页、退出登录。未登录显示"登录""注册"。退出登录均需在弹出框中确认。
-- 登录、注册、个人主页不显示顶部导航栏，左上角 logo 可返回首页。登录与注册内容放在卡片中。
+- 登录、注册、个人主页不显示顶部导航栏，左上角 logo 可返回首页。登录与注册内容放在卡片中，并上下左右居中。
 
 ### 视觉
 
