@@ -123,8 +123,7 @@ npm run dev
 ## 对接后端
 
 - 开发环境通过 Vite `server.proxy` 转发到 `blog-server`，避免跨域。
-- 接口契约统一维护在仓库根目录 `docs/api.md`，前后端同步更新。
-- 后端微服务（gateway / userService / postService 等）对前端透明，前端只关心网关暴露的统一入口。
+- 接口契约统一维护在仓库根目录 `docs/api/api.md`，前后端同步更新。
 
 ## 构建与部署
 
