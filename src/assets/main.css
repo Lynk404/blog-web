@@ -1,49 +1,59 @@
 /*
- * 全局样式：深色主题（中性灰 + 蓝色强调）+ 系统无衬线字体。
- * 灰阶取自 Element Plus 原生深色主题，避免与库内默认值混用两套色调。
+ * 全局样式：深色主题（近黑底 + 金色主强调 + 紫色次强调）+ 系统无衬线字体。
  * 用 html:root（优先级高于 Element Plus 在 :root 上定义的变量），保证加载顺序不影响覆盖。
  */
 html:root {
   color-scheme: dark;
 
   /* 背景与卡片（卡片比页面底色略亮，形成层次） */
-  --el-bg-color-page: #0a0a0a;
-  --el-bg-color: #141414;
-  --el-bg-color-overlay: #1d1e1f;
-  --el-fill-color-blank: #141414;
-  --el-fill-color-light: #262727;
-  --el-fill-color: #303030;
+  --el-bg-color-page: #090909;
+  --el-bg-color: #1d1d1d;
+  --el-bg-color-overlay: #242424;
+  --el-fill-color-blank: #1d1d1d;
+  --el-fill-color-light: #2a2a2a;
+  --el-fill-color: #333333;
 
   /* 文字 */
-  --el-text-color-primary: #e5eaf3;
-  --el-text-color-regular: #cfd3dc;
-  --el-text-color-secondary: #a3a6ad;
-  --el-text-color-placeholder: #8d9095;
+  --el-text-color-primary: #f4f4f5;
+  --el-text-color-regular: #d4d4d8;
+  --el-text-color-secondary: #9a9aa3;
+  --el-text-color-placeholder: #77777f;
 
   /* 边框 */
-  --el-border-color: #4c4d4f;
-  --el-border-color-light: #414243;
-  --el-border-color-lighter: #363637;
+  --el-border-color: #2f2f35;
+  --el-border-color-light: #28282d;
+  --el-border-color-lighter: #222226;
 
-  /* 强调色：蓝色 */
-  --el-color-primary: #2563eb;
-  --el-color-primary-light-3: #5b8df0;
-  --el-color-primary-light-5: #87aef5;
-  --el-color-primary-light-7: #b5cdfa;
-  --el-color-primary-light-9: #e8f0fe;
-  --el-color-primary-dark-2: #1d4ed8;
+  /* 主强调色：金色 */
+  --el-color-primary: #d4a63a;
+  --el-color-primary-light-3: #e2c06a;
+  --el-color-primary-light-5: #ecd28e;
+  --el-color-primary-light-7: #f4e4b8;
+  --el-color-primary-light-9: #fbf4e1;
+  --el-color-primary-dark-2: #b08324;
 
-  /* 卡片：与页面形成层次，边框使用中性灰 */
-  --el-card-bg-color: #141414;
-  --el-card-border-color: #414243;
+  /* 卡片：实色深灰，边框用更暗的中性灰 */
+  --el-card-bg-color: #1d1d1d;
+  --el-card-border-color: #2f2f35;
+  --el-card-border-radius: 12px;
 
-  /* 顶部导航与菜单：与页面底色一致，避免浅色默认值 */
-  --el-menu-bg-color: #141414;
-  --el-menu-text-color: #cfd3dc;
-  --el-menu-hover-bg-color: #1d1e1f;
-  --el-menu-hover-text-color: #e5eaf3;
-  --el-menu-active-color: #5b8df0;
-  --el-menu-border-color: #363637;
+  /* 深色蒙版：搜索弹窗覆盖主页时压暗背景 */
+  --el-overlay-color-lighter: rgba(0, 0, 0, 0.72);
+
+  /* 项目自定义令牌 */
+  --app-surface: #1d1d1d;
+  --app-surface-hover: #252525;
+  --app-purple: #575659;
+  --app-purple-dark: #3a2f45;
+  --app-purple-light: #8a8790;
+  --app-purple-gradient: linear-gradient(135deg, #575659 0%, #3a2f45 100%);
+  --app-hot-gradient: linear-gradient(135deg, #362a42 0%, #382812 100%);
+  --app-gold-soft: rgba(212, 166, 58, 0.12);
+  --app-on-gold: #1a1408;
+  --app-on-purple: #f7f2ff;
+  --app-on-rank: #161616;
+  --app-rank-silver: #c0c4cc;
+  --app-rank-bronze: #cd7f32;
 }
 
 *,
@@ -67,7 +77,18 @@ body,
     'Microsoft YaHei',
     sans-serif;
   color: var(--el-text-color-regular);
+}
+
+body {
   background: var(--el-bg-color-page);
+}
+
+/* 顶部很淡的紫/金光晕，保持近黑底但有层次 */
+#app {
+  background:
+    radial-gradient(900px 520px at 18% -10%, rgba(109, 74, 158, 0.16), transparent 65%),
+    radial-gradient(800px 480px at 82% -10%, rgba(212, 166, 58, 0.08), transparent 65%),
+    var(--el-bg-color-page);
 }
 
 /* 键盘焦点可见（对比度满足 WCAG 2.2 焦点要求） */
@@ -80,16 +101,23 @@ a {
   color: var(--el-color-primary-light-3);
 }
 
+/* 金色主按钮使用深色文字，保证对比度 */
+.el-button--primary {
+  --el-button-text-color: var(--app-on-gold);
+  --el-button-hover-text-color: var(--app-on-gold);
+  --el-button-active-text-color: var(--app-on-gold);
+}
+
 /* 可点击卡片（shadow="hover"）的悬停反馈。
  * Element Plus 默认悬停阴影为 0 0 12px #0000001f，在深色背景上几乎不可见，因此改用边框与背景变化 */
 .el-card.is-hover-shadow:hover {
   border-color: var(--el-color-primary);
-  background-color: var(--el-bg-color-overlay);
+  background-color: var(--app-surface-hover);
 }
 
-/* 顶部进度条（nprogress）：使用强调色；选择器特异性高于库自带样式 */
+/* 顶部进度条（nprogress）：使用金色强调色；选择器特异性高于库自带样式 */
 html:root #nprogress .bar {
-  background: var(--el-color-primary-light-3);
+  background: var(--el-color-primary);
 }
 
 /* Markdown 编辑器与预览（v-md-editor）深色覆盖。

@@ -9,7 +9,7 @@ const router = useRouter()
 const route = useRoute()
 const user = useUserStore()
 
-const activeIndex = computed(() => (route.path.startsWith('/columns') ? '/columns' : '/'))
+const isWide = computed(() => route.meta.wide === true)
 const avatarText = computed(() => user.profile?.nikname?.charAt(0) ?? '')
 
 async function handleUserCommand(command: string) {
@@ -26,34 +26,44 @@ async function handleUserCommand(command: string) {
 <template>
   <el-container class="app-layout">
     <el-header class="app-header">
-      <AppBrand />
-      <el-menu mode="horizontal" :default-active="activeIndex" :router="true" class="nav">
-        <el-menu-item index="/">首页</el-menu-item>
-        <el-menu-item index="/columns">专栏</el-menu-item>
-      </el-menu>
+      <div class="header-inner">
+        <AppBrand />
+        <div class="header-spacer"></div>
+        <button
+          type="button"
+          class="search-trigger"
+          aria-label="搜索"
+          @click="router.push({ name: 'search' })"
+        >
+          <span class="search-label">搜索标题或正文</span>
+          <span class="search-label-short" aria-hidden="true">搜索</span>
+        </button>
 
-      <div class="auth">
-        <el-dropdown v-if="user.isLoggedIn" trigger="click" @command="handleUserCommand">
-          <button type="button" class="avatar-trigger" aria-label="用户菜单">
-            <el-avatar :size="36" :src="user.profile?.avatar">{{ avatarText }}</el-avatar>
-          </button>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item command="profile">个人主页</el-dropdown-item>
-              <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
-            </el-dropdown-menu>
+        <div class="auth">
+          <el-dropdown v-if="user.isLoggedIn" trigger="click" @command="handleUserCommand">
+            <button type="button" class="avatar-trigger" aria-label="用户菜单">
+              <el-avatar :size="36" :src="user.profile?.avatar">{{ avatarText }}</el-avatar>
+            </button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="profile">个人主页</el-dropdown-item>
+                <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+          <template v-else>
+            <el-button text class="auth-btn" @click="router.push({ name: 'login' })"
+              >登录</el-button
+            >
+            <el-button type="primary" class="auth-btn" @click="router.push({ name: 'register' })">
+              注册
+            </el-button>
           </template>
-        </el-dropdown>
-        <template v-else>
-          <el-button text class="auth-btn" @click="router.push({ name: 'login' })">登录</el-button>
-          <el-button type="primary" class="auth-btn" @click="router.push({ name: 'register' })">
-            注册
-          </el-button>
-        </template>
+        </div>
       </div>
     </el-header>
 
-    <el-main class="app-main">
+    <el-main class="app-main" :class="{ 'is-wide': isWide }">
       <RouterView />
     </el-main>
   </el-container>
@@ -65,15 +75,55 @@ async function handleUserCommand(command: string) {
 }
 
 .app-header {
-  display: flex;
-  align-items: center;
-  gap: 24px;
+  height: 72px;
+  padding: 0;
   border-bottom: 1px solid var(--el-border-color);
 }
 
-.nav {
+.header-inner {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+  height: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.header-spacer {
   flex: 1;
-  border-bottom: none;
+}
+
+.search-trigger {
+  width: 220px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--el-border-color);
+  border-radius: 999px;
+  background: var(--app-surface);
+  color: var(--el-text-color-placeholder);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s,
+    color 0.2s;
+}
+
+.search-trigger:hover {
+  border-color: var(--el-color-primary);
+  background: var(--app-surface-hover);
+  color: var(--el-text-color-regular);
+}
+
+.search-label-short {
+  display: none;
 }
 
 .auth {
@@ -100,6 +150,10 @@ async function handleUserCommand(command: string) {
   border-radius: 50%;
 }
 
+.avatar-trigger:hover {
+  box-shadow: 0 0 0 2px var(--el-color-primary);
+}
+
 .avatar-trigger:focus-visible {
   outline: 2px solid var(--el-color-primary);
   outline-offset: 2px;
@@ -109,5 +163,34 @@ async function handleUserCommand(command: string) {
   max-width: 960px;
   width: 100%;
   margin: 0 auto;
+}
+
+.app-main.is-wide {
+  max-width: 1600px;
+}
+
+@media (max-width: 600px) {
+  .app-header {
+    height: 64px;
+  }
+
+  .header-inner {
+    gap: 8px;
+    padding: 0 12px;
+  }
+
+  .search-trigger {
+    width: 56px;
+    padding: 0;
+    text-align: center;
+  }
+
+  .search-label {
+    display: none;
+  }
+
+  .search-label-short {
+    display: inline;
+  }
 }
 </style>

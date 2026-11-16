@@ -111,9 +111,14 @@ function submit() {
   })
 }
 
-onMounted(() => {
-  void loadColumns()
+onMounted(async () => {
   void loadArticle()
+  await loadColumns()
+  // 从专栏页进入时带 column 参数，仅本人专栏可选
+  const preset = String(route.query.column ?? '')
+  if (!isEdit.value && preset && myColumns.value.some((col) => col._id === preset)) {
+    form.column = preset
+  }
 })
 // 同一组件在 /articles/:id/edit 之间切换时重新取数
 watch(articleId, () => void loadArticle())
@@ -172,6 +177,12 @@ watch(articleId, () => void loadArticle())
 </template>
 
 <style scoped>
+.create {
+  width: 100%;
+  max-width: 960px;
+  padding: 0 16px 48px;
+}
+
 .heading {
   margin: 0 0 20px;
 }

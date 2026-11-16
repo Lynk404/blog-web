@@ -16,6 +16,8 @@ declare module 'vue-router' {
     guestOnly?: boolean
     /** 认证布局中内容上下左右居中（仅登录、注册） */
     centered?: boolean
+    /** 主区域使用更宽的容器（首页三栏） */
+    wide?: boolean
   }
 }
 
@@ -31,19 +33,15 @@ const router = createRouter({
           path: '',
           name: 'home',
           component: () => import('../views/HomeView.vue'),
-        },
-        {
-          // 静态路径写在 articles/:id 之前，避免 new 被当作文章 id
-          path: 'articles/new',
-          name: 'article-create',
-          component: () => import('../views/ArticleCreateView.vue'),
-          meta: { requiresAuth: true },
-        },
-        {
-          path: 'articles/:id/edit',
-          name: 'article-edit',
-          component: () => import('../views/ArticleCreateView.vue'),
-          meta: { requiresAuth: true },
+          meta: { wide: true },
+          // 搜索页作为首页子路由：HomeView 保持挂载，搜索弹窗以蒙版覆盖在主页上
+          children: [
+            {
+              path: 'search',
+              name: 'search',
+              component: () => import('../views/SearchView.vue'),
+            },
+          ],
         },
         {
           path: 'articles/:id',
@@ -62,7 +60,7 @@ const router = createRouter({
         },
       ],
     },
-    // 独立页面：不显示顶部导航栏，仅保留左上角 logo（登录、注册、个人主页）
+    // 独立页面：不显示顶部导航栏，仅保留左上角 logo（登录、注册、个人主页、写文章）
     {
       path: '/',
       component: AuthLayout,
@@ -71,6 +69,18 @@ const router = createRouter({
           path: 'me',
           name: 'profile',
           component: () => import('../views/ProfileView.vue'),
+          meta: { requiresAuth: true },
+        },
+        {
+          path: 'articles/new',
+          name: 'article-create',
+          component: () => import('../views/ArticleCreateView.vue'),
+          meta: { requiresAuth: true },
+        },
+        {
+          path: 'articles/:id/edit',
+          name: 'article-edit',
+          component: () => import('../views/ArticleCreateView.vue'),
           meta: { requiresAuth: true },
         },
         {

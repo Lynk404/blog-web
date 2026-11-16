@@ -37,6 +37,15 @@ function openCreate() {
   createVisible.value = true
 }
 
+// 后端只允许发布到本人专栏
+function canPublish(col: Column) {
+  return user.isLoggedIn && col.uid === user.uid
+}
+
+function publish(col: Column) {
+  router.push({ name: 'article-create', query: { column: col._id } })
+}
+
 function submitCreate() {
   createFormRef.value?.validate(async (valid) => {
     if (!valid) return
@@ -75,7 +84,12 @@ onMounted(load)
       shadow="hover"
       @click="router.push({ name: 'column-detail', params: { id: col._id } })"
     >
-      <div class="name">{{ col.name }}</div>
+      <div class="card-head">
+        <div class="name">{{ col.name }}</div>
+        <el-button v-if="canPublish(col)" type="primary" class="action" @click.stop="publish(col)">
+          发布帖子
+        </el-button>
+      </div>
       <div class="meta">文章 {{ col.aids?.length ?? 0 }} 篇</div>
     </el-card>
 
@@ -120,6 +134,13 @@ onMounted(load)
 .item {
   margin-bottom: 12px;
   cursor: pointer;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .name {
