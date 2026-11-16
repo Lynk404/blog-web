@@ -107,6 +107,7 @@ npm run format       # prettier --write --experimental-cli src/
 - 写文章/编辑文章在 `AuthLayout` 下全屏显示，页面主体限宽 960px；`/articles/new?column=<id>` 会在本人专栏中预选该专栏，编辑模式忽略该参数。
 - 专栏列表页只对本人专栏显示“发布帖子”，点击进入 `/articles/new?column=<id>`；他人专栏不显示。
 - 文章正文为 **Markdown**，由 `src/components/MarkdownPreview.vue`（v-md-editor 预览）渲染。预览内置 xss 过滤，**不得关闭**。编辑器为 `src/components/MarkdownEditor.vue`。两者均为懒加载，只在需要的页面加载。若新增渲染入口，必须经过同一预览组件或同等净化，不得直接 `v-html`。
+- v-md-editor 的 github 主题实际容器类名是 `github-markdown-body`（不是 `markdown-body`）；`main.css` 的深色覆盖必须同时覆盖两个类名，尤其要覆盖表格 `tr` 与 `tr:nth-child(2n)` 的白色/浅灰背景，否则正文表格会显示为白底。
 - **编辑器内核由调用方注入**：v-md-editor 2.x 不内置 CodeMirror，`MarkdownEditor.vue` 通过组件选项 `Codemirror` 注入 `codemirror`（5.x，已作为直接依赖）。未注入时编辑器内部报 `reading 'doc'` 错误。库默认 `scrollbarStyle: 'overlay'` 需额外插件，这里改为 `native`。
 - v-md-editor 的子路径入口（`/lib/codemirror-editor`、`/lib/preview`、`/lib/theme/github.js`）与 `codemirror` 的最小类型声明在 `src/types/md-editor.d.ts`，修改编辑器导入方式时需同步维护。
 - 文章详情与专栏详情只在挂载及 `route.params.id` 变化时请求，不在渲染中请求（`GET /api/rest/articles/:id` 每次调用阅读数 +1）。

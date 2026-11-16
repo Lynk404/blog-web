@@ -188,7 +188,9 @@ html:root .v-md-editor .CodeMirror-activeline-background {
 }
 
 html:root .v-md-editor__preview-wrapper,
-html:root .v-md-editor .markdown-body {
+html:root .v-md-editor .markdown-body,
+html:root .v-md-editor .github-markdown-body,
+html:root .github-markdown-body {
   background: transparent;
   color: var(--el-text-color-regular);
 }
@@ -199,33 +201,50 @@ html:root .markdown-body h3,
 html:root .markdown-body h4,
 html:root .markdown-body h5,
 html:root .markdown-body h6,
-html:root .markdown-body strong {
+html:root .markdown-body strong,
+html:root .github-markdown-body h1,
+html:root .github-markdown-body h2,
+html:root .github-markdown-body h3,
+html:root .github-markdown-body h4,
+html:root .github-markdown-body h5,
+html:root .github-markdown-body h6,
+html:root .github-markdown-body strong {
   color: var(--el-text-color-primary);
+  border-bottom-color: var(--el-border-color);
 }
 
-html:root .markdown-body a {
+html:root .markdown-body a,
+html:root .github-markdown-body a {
   color: var(--el-color-primary-light-3);
 }
 
 html:root .markdown-body code,
-html:root .markdown-body pre {
+html:root .markdown-body pre,
+html:root .github-markdown-body code,
+html:root .github-markdown-body pre {
   background: var(--el-fill-color-light);
   color: var(--el-text-color-primary);
 }
 
-html:root .markdown-body blockquote {
+html:root .markdown-body blockquote,
+html:root .github-markdown-body blockquote {
   color: var(--el-text-color-secondary);
   border-left-color: var(--el-border-color);
 }
 
 html:root .markdown-body table th,
 html:root .markdown-body table td,
-html:root .markdown-body table tr {
+html:root .markdown-body table tr,
+html:root .github-markdown-body table th,
+html:root .github-markdown-body table td,
+html:root .github-markdown-body table tr,
+html:root .github-markdown-body table tr:nth-child(2n) {
   border-color: var(--el-border-color);
   background: transparent;
 }
 
-html:root .markdown-body hr {
+html:root .markdown-body hr,
+html:root .github-markdown-body hr {
   background-color: var(--el-border-color);
 }
 
