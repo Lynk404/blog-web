@@ -82,7 +82,7 @@ npm run dev
 | 命令 | 说明 |
 | --- | --- |
 | `npm run dev` | 启动 Vite 开发服务器 |
-| `npm run build` | 类型检查（`vue-tsc --build`）后执行生产构建，产物输出到 `dist/` |
+| `npm run build` | 并行执行类型检查（`vue-tsc --build`）与生产构建，产物输出到 `dist/` |
 | `npm run build-only` | 仅执行 `vite build`，不做类型检查 |
 | `npm run type-check` | 仅执行类型检查 |
 | `npm run preview` | 本地预览 `dist/` |

@@ -7,16 +7,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 npm install
 npm run dev          # Vite 开发服务器；接口地址来自 .env.development 的 VITE_APP_BASE_URL
-npm run build        # vue-tsc --build（类型检查）后执行 vite build -> dist/
+npm run build        # run-p 并行执行 vue-tsc --build 与 vite build -> dist/
 npm run type-check   # 仅 vue-tsc 类型检查（覆盖 src/ 下全部 .ts/.vue）
 npm run build-only   # 仅 vite build，不做类型检查
 npm run preview      # 本地预览 dist/
-npm run format       # prettier --write src/
+npm run format       # prettier --write --experimental-cli src/
 ```
 
 - Node：`^20.19.0 || >=22.12.0`（见 package.json 的 `engines`）。
 - 未配置测试框架与 lint，没有单测命令。验证改动使用 `npm run type-check` 与 `npm run build`。
-- 运行前需启动后端 `blog-server`（默认 `http://127.0.0.1:3000`，同级目录 `../blog-server`）。
+- 运行前需启动后端 `blog-server`（默认 `http://127.0.0.1:3000`，同级目录 `../blog-server`）：`cd ../blog-server && npm start`。前置条件：MongoDB 运行在 `mongodb://127.0.0.1:27017/db_blog`、`auth/` 下有四个密钥文件、已执行 `node scripts/sync-key.js`（详见 `docs/integration/manual-checklist.md`）。
 - `.env.development` 已被 git 跟踪。不要在输出或提交中打印、复制其中的值。当前没有 `.env.production`。
 
 ## 工作约定（用户要求）
@@ -30,10 +30,10 @@ npm run format       # prettier --write src/
 
 - 技术栈：Vue 3 + TypeScript（`<script setup lang="ts">`）+ Vite 8 + Pinia + Vue Router + Element Plus（按需导入）。
 - 已完成：布局与路由、只读浏览、登录注册、自动登录、头像菜单、个人主页（独立页面）、退出二次确认、登录注册卡片与居中、深色主题，以及写入功能（评论、点赞、发布文章、新建专栏、编辑资料、头像、改密码、注销），编辑与删除（文章、评论、专栏，含级联提示），Markdown 编辑与预览（v-md-editor），路由顶部进度条（nprogress）。类型检查与构建通过。
-- **接口层已验证**（后端在线）：只读接口与未登录 401 已验证；写接口（发评论、点赞、建专栏、发文章、改资料、上传头像、改密码、注销）已用临时账号联调，32 项全部通过（测试脚本在项目外，未入库）。编辑与删除接口（文章、评论、专栏，含级联）另用临时账号验证，21 项中 20 项通过；未通过的一项是测试断言写错（阅读数应为 0，后端行为正确）。**未做浏览器端到端测试**，登录、自动登录、头像菜单、个人主页、写入页面、Markdown 编辑器与进度条的交互尚未在浏览器中验证。
+- **接口层已验证**（后端在线）：只读接口与未登录 401 已验证；写接口、编辑与删除接口（含级联）均已用临时账号联调通过，测试脚本在项目外、未入库。**未做浏览器端到端测试**：登录、自动登录、头像菜单、个人主页、写入页面、Markdown 编辑器与进度条的交互尚未在浏览器中验证，按 `docs/integration/manual-checklist.md` 检查。
 - 已实现页面：首页（文章列表、搜索、分页、登录后写文章入口）、发布文章与编辑文章（登录，`article-create` 与 `article-edit` 复用同一组件，仅本人专栏可发布）、文章详情（Markdown 正文、评论增删改、点赞、发表评论，作者可编辑或删除文章）、专栏列表（登录后新建专栏）、专栏详情（作者可改名、删除）、个人主页（资料、头像、编辑资料、改密码、注销）、登录、注册、404。
-- 已删除（经用户确认）：`src/views/AboutView.vue`；模板遗留的 `src/components/HelloWorld.vue`、`TheWelcome.vue`、`WelcomeItem.vue`、`components/icons/*`、`src/stores/counter.ts`、`src/assets/base.css`、`src/assets/logo.svg`。
-- `src/plugins/http.js` 在工作区中已删除（`git status` 显示 `D`），`src/plugins/` 为空目录。
+- `src/plugins/` 为空目录。
+- `src/style.css` 为模板遗留文件，全项目未引用，待清理（删除前需确认）。
 - 服务端契约文档 `docs/integration/frontend-handoff.md` 是接口的权威来源。`docs/api/` 为后端侧参考。
 - 项目内 Claude 配置：
   - `.claude/rules/karpathy-guidelines.md`：编码行为准则（先想清楚再动手、最小改动、可验证目标），内容来自上游仓库 `CLAUDE.md`。
@@ -100,6 +100,7 @@ npm run format       # prettier --write src/
 - 首页：关键词为空走 `articles`，否则走 `search`（参数 `query: { q }`）。每页 10 条。
 - 文章正文为 **Markdown**，由 `src/components/MarkdownPreview.vue`（v-md-editor 预览）渲染。预览内置 xss 过滤，**不得关闭**。编辑器为 `src/components/MarkdownEditor.vue`。两者均为懒加载，只在需要的页面加载。若新增渲染入口，必须经过同一预览组件或同等净化，不得直接 `v-html`。
 - **编辑器内核由调用方注入**：v-md-editor 2.x 不内置 CodeMirror，`MarkdownEditor.vue` 通过组件选项 `Codemirror` 注入 `codemirror`（5.x，已作为直接依赖）。未注入时编辑器内部报 `reading 'doc'` 错误。库默认 `scrollbarStyle: 'overlay'` 需额外插件，这里改为 `native`。
+- v-md-editor 的子路径入口（`/lib/codemirror-editor`、`/lib/preview`、`/lib/theme/github.js`）与 `codemirror` 的最小类型声明在 `src/types/md-editor.d.ts`，修改编辑器导入方式时需同步维护。
 - 文章详情与专栏详情只在挂载及 `route.params.id` 变化时请求，不在渲染中请求（`GET /api/rest/articles/:id` 每次调用阅读数 +1）。
 - 专栏列表与详情中的 `aids` 为 populate 后的文章；专栏详情为单条查询，**不分页**，返回全部文章（已用 `GET /api/rest/columns/:id` 确认）。
 
@@ -164,6 +165,7 @@ npm run format       # prettier --write src/
 ## 约定（沿用并更新自 README）
 
 - 组件：仅使用 `<script setup lang="ts">`，禁止 Options API；组件名 PascalCase，文件名与组件名一致；样式用 `<style scoped>`。
+- 同一逻辑在两个及以上页面复用时，抽取为 `src/composables/useXxx.ts`（目前尚无该目录）。
 - 所有 HTTP 请求经过 `src/api/`，组件中禁止直接调用 axios。
 - 不要随意修改 `vite.config.ts` 与 `tsconfig.app.json`；如需修改需同步更新本文件与 README。
 - Prettier：无分号、单引号、printWidth 100（`.prettierrc.json`）。
