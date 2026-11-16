@@ -54,6 +54,11 @@ html:root {
   --app-on-rank: #161616;
   --app-rank-silver: #c0c4cc;
   --app-rank-bronze: #cd7f32;
+
+  /* Logo：低饱和蓝灰 + 流光高光 + 背后光晕 */
+  --app-logo-color: #405a6f;
+  --app-logo-shine: #8fb0c9;
+  --app-logo-glow: rgba(64, 90, 111, 0.7);
 }
 
 *,

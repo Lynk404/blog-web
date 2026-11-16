@@ -232,6 +232,7 @@ onMounted(() => {
   color: var(--app-on-purple);
   font-size: 12px;
   opacity: 0.78;
+  text-decoration: none;
 }
 
 .more:hover {

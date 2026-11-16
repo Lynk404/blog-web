@@ -1,6 +1,6 @@
-# Bug论坛（BugForum） · 前端（blog-web）
+# Yes论坛（YesForum） · 前端（blog-web）
 
-Bug论坛前端应用，基于 Vue 3 + Vite + TypeScript 构建，对接 `blog-server` 后端服务。
+Yes论坛前端应用，基于 Vue 3 + Vite + TypeScript 构建，对接 `blog-server` 后端服务。
 
 ---
 
@@ -164,6 +164,7 @@ npm run dev
 ### 视觉
 
 - 深色主题（近黑底 `#090909` + 金色主强调 + 紫色次强调），卡片背景 `#1d1d1d`，配色与变量定义见 `src/assets/main.css`。字体为系统无衬线字体。左栏标题渐变 `#575659 → #3a2f45`，热门标题渐变 `#362a42 → #382812`；热门前三名为金/银/铜，搜索框为胶囊形。文章卡片悬停时边框变金、背景提亮并有轻微放大；`prefers-reduced-motion` 下取消放大。
+- Logo 为“Yes论坛”，主色 `#405a6f`，带渐变扫光与背后光晕动画；`prefers-reduced-motion` 下静止。Logo 与“全部专栏”链接无下划线。
 
 ### 依赖管理
 
