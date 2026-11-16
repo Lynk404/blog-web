@@ -103,62 +103,64 @@ onMounted(() => {
         </div>
       </aside>
 
-      <section v-if="hot.length" class="hot panel" aria-labelledby="hot-title">
-        <div class="panel-head">
-          <h2 id="hot-title" class="section-title">热门文章</h2>
-        </div>
-        <div class="panel-body">
-          <ol class="hot-list">
-            <li v-for="(item, index) in hot" :key="item._id">
-              <button type="button" class="hot-item" @click="openArticle(item._id)">
-                <span
-                  class="hot-rank"
-                  :class="{
-                    'is-gold': index === 0,
-                    'is-silver': index === 1,
-                    'is-bronze': index === 2,
-                  }"
-                >
-                  {{ index + 1 }}
-                </span>
-                <span class="hot-title">{{ item.title }}</span>
-                <span class="hot-meta">阅读 {{ item.hit_num }}</span>
-              </button>
-            </li>
-          </ol>
-        </div>
-      </section>
-
-      <section class="feed" aria-label="文章列表">
-        <el-skeleton v-if="loading" :rows="3" animated />
-        <el-empty v-else-if="result && result.list.length === 0" description="暂无文章" />
-        <el-card
-          v-for="item in result?.list ?? []"
-          :key="item._id"
-          class="item"
-          shadow="hover"
-          @click="openArticle(item._id)"
-        >
-          <div class="title">{{ item.title }}</div>
-          <div class="meta">
-            <span v-if="item.column">{{ item.column.name }}</span>
-            <span v-if="item.author">{{ item.author.nikname }}</span>
-            <span>阅读 {{ item.hit_num }}</span>
-            <span>评论 {{ item.comment_num }}</span>
-            <span>点赞 {{ item.like_num }}</span>
+      <div class="center-column">
+        <section v-if="hot.length" class="hot panel" aria-labelledby="hot-title">
+          <div class="panel-head">
+            <h2 id="hot-title" class="section-title">热门文章</h2>
           </div>
-        </el-card>
+          <div class="panel-body">
+            <ol class="hot-list">
+              <li v-for="(item, index) in hot" :key="item._id">
+                <button type="button" class="hot-item" @click="openArticle(item._id)">
+                  <span
+                    class="hot-rank"
+                    :class="{
+                      'is-gold': index === 0,
+                      'is-silver': index === 1,
+                      'is-bronze': index === 2,
+                    }"
+                  >
+                    {{ index + 1 }}
+                  </span>
+                  <span class="hot-title">{{ item.title }}</span>
+                  <span class="hot-meta">阅读 {{ item.hit_num }}</span>
+                </button>
+              </li>
+            </ol>
+          </div>
+        </section>
 
-        <el-pagination
-          v-if="result && result.total > 0"
-          class="pager"
-          layout="prev, pager, next, total"
-          :current-page="page"
-          :page-size="PAGE_SIZE"
-          :total="result.total"
-          @current-change="handlePageChange"
-        />
-      </section>
+        <section class="feed" aria-label="文章列表">
+          <el-skeleton v-if="loading" :rows="3" animated />
+          <el-empty v-else-if="result && result.list.length === 0" description="暂无文章" />
+          <el-card
+            v-for="item in result?.list ?? []"
+            :key="item._id"
+            class="item"
+            shadow="hover"
+            @click="openArticle(item._id)"
+          >
+            <div class="title">{{ item.title }}</div>
+            <div class="meta">
+              <span v-if="item.column">{{ item.column.name }}</span>
+              <span v-if="item.author">{{ item.author.nikname }}</span>
+              <span>阅读 {{ item.hit_num }}</span>
+              <span>评论 {{ item.comment_num }}</span>
+              <span>点赞 {{ item.like_num }}</span>
+            </div>
+          </el-card>
+
+          <el-pagination
+            v-if="result && result.total > 0"
+            class="pager"
+            layout="prev, pager, next, total"
+            :current-page="page"
+            :page-size="PAGE_SIZE"
+            :total="result.total"
+            @current-change="handlePageChange"
+          />
+        </section>
+      </div>
 
       <aside class="sidebar right" aria-hidden="true"></aside>
     </div>
@@ -176,31 +178,26 @@ onMounted(() => {
 .home-grid {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr) 260px;
-  grid-template-areas:
-    'left hot right'
-    '. feed right';
   gap: 24px;
-  align-items: stretch;
+  align-items: start;
+}
+
+.center-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
 }
 
 .sidebar {
   min-width: 0;
 }
 
-.left {
-  grid-area: left;
-}
-
-.hot {
-  grid-area: hot;
-}
-
 .feed {
-  grid-area: feed;
+  min-width: 0;
 }
 
 .right {
-  grid-area: right;
   min-height: 1px;
 }
 
@@ -423,9 +420,6 @@ onMounted(() => {
 @media (max-width: 1280px) {
   .home-grid {
     grid-template-columns: 220px minmax(0, 1fr);
-    grid-template-areas:
-      'left hot'
-      '. feed';
   }
 
   .right {
@@ -436,10 +430,10 @@ onMounted(() => {
 @media (max-width: 820px) {
   .home-grid {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      'left'
-      'hot'
-      'feed';
+    gap: 16px;
+  }
+
+  .center-column {
     gap: 16px;
   }
 

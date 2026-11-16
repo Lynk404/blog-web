@@ -61,7 +61,7 @@ npm run format       # prettier --write --experimental-cli src/
   - **主站** `AppLayout`（`src/layouts/AppLayout.vue`，顶部仅 logo + 搜索框 + 头像菜单，无首页/专栏菜单）：`home`（`meta.wide: true`，三栏）、其子路由 `search`（搜索蒙版）、`article-detail`、`columns`、`column-detail`。
   - **独立页面** `AuthLayout`（`src/layouts/AuthLayout.vue`，无导航栏，仅左上角 logo `src/components/AppBrand.vue` 返回首页）：`login`、`register`（`guestOnly`，路由 meta `centered: true`，内容上下左右居中），以及 `profile`、`article-create`、`article-edit`（均 `requiresAuth`，顶部对齐；写文章与编辑页为全屏布局）。
 - `search` 作为 `home` 的子路由，使 `HomeView` 在打开搜索时保持挂载，弹窗以蒙版覆盖主页；`HomeView` 内必须保留 `<RouterView />` 出口。
-- `AppLayout` 的 `el-main` 根据 `route.meta.wide` 放宽到 1600px；其他主站页面保持 960px。首页网格为 `260px minmax(0, 1fr) 260px`，左右等宽使中栏居中；`grid-template-areas` 为 `left hot right` / `. feed right`，左栏与热门栏同处第一行并等高。`≤1280px` 隐藏右栏变两栏，`≤820px` 变单栏。
+- `AppLayout` 的 `el-main` 根据 `route.meta.wide` 放宽到 1600px；其他主站页面保持 960px。首页网格为 `260px minmax(0, 1fr) 260px`，左右等宽使中栏居中；中栏是独立纵向容器（热门文章 → 文章列表），左栏与中栏顶部对齐，高度各自随内容，不拉伸。`≤1280px` 隐藏右栏变两栏，`≤820px` 变单栏。
 - 顶部搜索框是按钮（不是输入框），点击进入 `search`；真实输入与结果都在蒙版内。
 - 未匹配路径进入 `not-found`。
 - 页面组件一律懒加载，路径为 `() => import('../views/Xxx.vue')`。
