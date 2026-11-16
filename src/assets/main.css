@@ -49,6 +49,7 @@ html:root {
   --app-purple-gradient: linear-gradient(135deg, #575659 0%, #3a2f45 100%);
   --app-hot-gradient: linear-gradient(135deg, #362a42 0%, #382812 100%);
   --app-gold-soft: rgba(212, 166, 58, 0.12);
+  --app-gold-active: rgba(212, 166, 58, 0.28);
   --app-on-gold: #1a1408;
   --app-on-purple: #f7f2ff;
   --app-on-rank: #161616;

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Collection, Plus } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -18,6 +18,11 @@ const user = useUserStore()
 
 const loading = ref(false)
 const columns = ref<Column[]>([])
+
+// 当前选中的专栏：只在专栏详情页高亮对应项
+const activeId = computed(() =>
+  route.name === 'column-detail' ? String(route.params.id ?? '') : '',
+)
 
 const createVisible = ref(false)
 const creating = ref(false)
@@ -86,7 +91,13 @@ onMounted(load)
     <el-empty v-else-if="columns.length === 0" description="暂无专栏" :image-size="60" />
     <ul v-else class="column-list">
       <li v-for="col in columns" :key="col._id">
-        <button type="button" class="column-item" @click="openColumn(col._id)">
+        <button
+          type="button"
+          class="column-item"
+          :class="{ 'is-active': col._id === activeId }"
+          :aria-current="col._id === activeId ? 'page' : undefined"
+          @click="openColumn(col._id)"
+        >
           <span class="column-name">{{ col.name }}</span>
           <span class="column-count">{{ col.aids?.length ?? 0 }} 篇</span>
         </button>
@@ -175,6 +186,24 @@ onMounted(load)
   color: var(--el-text-color-primary);
 }
 
+.column-item.is-active {
+  border-left-width: 3px;
+  border-left-color: var(--el-color-primary);
+  background: linear-gradient(90deg, var(--app-gold-active) 0%, var(--app-gold-soft) 100%);
+  color: var(--el-color-primary-light-3);
+  font-weight: 600;
+  padding-left: 11px;
+}
+
+.column-item.is-active .column-name {
+  color: var(--el-color-primary-light-3);
+}
+
+.column-item.is-active .column-count {
+  color: var(--el-color-primary-light-3);
+  opacity: 0.85;
+}
+
 .column-name {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -236,6 +265,13 @@ onMounted(load)
     min-width: 140px;
     padding: 0 10px;
     border: 1px solid var(--el-border-color-lighter);
+  }
+
+  .column-item.is-active {
+    border-width: 1px;
+    border-color: var(--el-color-primary);
+    padding-left: 10px;
+    background: linear-gradient(135deg, var(--app-gold-active) 0%, var(--app-gold-soft) 100%);
   }
 }
 </style>

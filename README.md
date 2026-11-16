@@ -134,7 +134,7 @@ npm run dev
 
 - 路由配置集中在 `src/router/index.ts`。主站页面挂载在 `AppLayout`（顶部仅 logo、搜索框、头像菜单）下；登录、注册、个人主页、写帖子/编辑帖子挂载在 `AuthLayout`（无导航）下，未匹配路径进入 404 页面。
 - 首页使用 `meta.wide: true`，主区域放宽到 1600px；其他主站页面保持 960px。首页三栏比例为 `260px minmax(0, 1fr) 260px`，栏间距 40px，左右等宽使中栏居中；中栏为独立纵向容器（热门帖子 → 帖子列表），左栏与中栏顶部对齐，高度各自随内容，不拉伸。`≤1280px` 隐藏右栏，`≤820px` 变单栏。
-- `/columns` 全部专栏页与 `/columns/:id` 专栏详情页同样使用 `meta.wide`，布局为「左侧共享 `ColumnSidebar` + 右侧合并主区」，比例 `260px + 1fr`，间距 40px。新建专栏入口只在专栏页的左侧栏末尾显示。
+- `/columns` 全部专栏页与 `/columns/:id` 专栏详情页同样使用 `meta.wide`，布局为「左侧共享 `ColumnSidebar` + 右侧合并主区」，比例 `260px + 1fr`，间距 40px。新建专栏入口只在专栏页的左侧栏末尾显示。专栏详情页会在左侧栏高亮当前专栏（3px 金色左边线 + 金色渐变底 + 金色字），与鼠标移入的浅金底区分。
 - 搜索页 `/search` 是首页的嵌套子路由，`HomeView` 保持挂载，搜索弹窗以蒙版覆盖主页；关键词写入 `?q=`。
 - 页面组件使用懒加载：`component: () => import('../views/Xxx.vue')`。
 - `meta.requiresAuth` 标记需登录页面（发布/编辑帖子、个人主页），`meta.guestOnly` 标记仅未登录可访问的页面（登录、注册），`meta.centered` 标记认证布局中内容需上下居中的页面（登录、注册）。守卫在 `router.beforeEach` 中处理。
