@@ -74,7 +74,7 @@ onMounted(() => {
 <template>
   <el-dialog
     v-model="visible"
-    title="搜索文章"
+    title="搜索帖子"
     width="min(720px, 92vw)"
     top="10vh"
     append-to-body
@@ -97,7 +97,7 @@ onMounted(() => {
     <el-empty v-else-if="!searched" description="输入关键词开始搜索" :image-size="70" />
     <el-empty
       v-else-if="result && result.list.length === 0"
-      description="没有找到相关文章"
+      description="没有找到相关帖子"
       :image-size="70"
     />
     <template v-else-if="result">

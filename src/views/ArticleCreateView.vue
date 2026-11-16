@@ -126,12 +126,12 @@ watch(articleId, () => void loadArticle())
 
 <template>
   <div class="create">
-    <h2 class="heading">{{ isEdit ? '编辑文章' : '发布文章' }}</h2>
+    <h2 class="heading">{{ isEdit ? '编辑帖子' : '发布帖子' }}</h2>
 
     <el-skeleton v-if="loading" :rows="4" animated />
 
-    <el-result v-else-if="editNotFound" icon="warning" title="文章不存在或加载失败" />
-    <el-result v-else-if="editDenied" icon="error" title="无权编辑该文章" />
+    <el-result v-else-if="editNotFound" icon="warning" title="帖子不存在或加载失败" />
+    <el-result v-else-if="editDenied" icon="error" title="无权编辑该帖子" />
 
     <template v-else>
       <el-empty v-if="!isEdit && myColumns.length === 0" description="你还没有专栏">
@@ -147,7 +147,7 @@ watch(articleId, () => void loadArticle())
         @submit.prevent="submit"
       >
         <el-form-item label="标题" prop="title">
-          <el-input v-model="form.title" placeholder="请输入文章标题" />
+          <el-input v-model="form.title" placeholder="请输入帖子标题" />
         </el-form-item>
         <el-form-item label="专栏" prop="column">
           <!-- 后端不允许修改文章所属专栏，编辑时只读 -->

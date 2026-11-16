@@ -87,13 +87,15 @@ onMounted(async () => {
 
       <el-descriptions :column="1" border>
         <el-descriptions-item label="邮箱">{{ profile.email }}</el-descriptions-item>
-        <el-descriptions-item label="签名">{{ profile.signature || '未设置' }}</el-descriptions-item>
+        <el-descriptions-item label="签名">{{
+          profile.signature || '未设置'
+        }}</el-descriptions-item>
       </el-descriptions>
 
       <div class="stats">
         <el-card shadow="never" class="stat">
           <div class="stat-value">{{ profile.articleCount }}</div>
-          <div class="stat-label">文章</div>
+          <div class="stat-label">帖子</div>
         </el-card>
         <el-card shadow="never" class="stat">
           <div class="stat-value">{{ profile.columnCount }}</div>
@@ -113,7 +115,9 @@ onMounted(async () => {
         </el-upload>
         <el-button class="action" @click="editVisible = true">编辑资料</el-button>
         <el-button class="action" @click="passwordVisible = true">修改密码</el-button>
-        <el-button class="action" type="danger" plain @click="deleteVisible = true">注销账号</el-button>
+        <el-button class="action" type="danger" plain @click="deleteVisible = true"
+          >注销账号</el-button
+        >
       </div>
 
       <ProfileEditDialog v-model="editVisible" :profile="profile" />

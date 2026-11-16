@@ -52,11 +52,13 @@ const router = createRouter({
           path: 'columns',
           name: 'columns',
           component: () => import('../views/ColumnListView.vue'),
+          meta: { wide: true },
         },
         {
           path: 'columns/:id',
           name: 'column-detail',
           component: () => import('../views/ColumnDetailView.vue'),
+          meta: { wide: true },
         },
       ],
     },

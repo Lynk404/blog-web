@@ -12,6 +12,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppBrand: typeof import('./components/AppBrand.vue')['default']
+    ColumnSidebar: typeof import('./components/ColumnSidebar.vue')['default']
     DeleteAccountDialog: typeof import('./components/profile/DeleteAccountDialog.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']
     ElAvatar: typeof import('element-plus/es')['ElAvatar']
@@ -40,6 +41,7 @@ declare module 'vue' {
     MarkdownEditor: typeof import('./components/MarkdownEditor.vue')['default']
     MarkdownPreview: typeof import('./components/MarkdownPreview.vue')['default']
     MessageBell: typeof import('./components/MessageBell.vue')['default']
+    PanelBox: typeof import('./components/PanelBox.vue')['default']
     PasswordDialog: typeof import('./components/profile/PasswordDialog.vue')['default']
     ProfileEditDialog: typeof import('./components/profile/ProfileEditDialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

@@ -25,7 +25,9 @@ const editingCommentId = ref<string | null>(null)
 const editingCommentText = ref('')
 const savingCommentId = ref<string | null>(null)
 
-const isAuthor = computed(() => !!article.value && user.isLoggedIn && article.value.author?._id === user.uid)
+const isAuthor = computed(
+  () => !!article.value && user.isLoggedIn && article.value.author?._id === user.uid,
+)
 const isCommentOwner = (c: Comment) => user.isLoggedIn && c.uid?._id === user.uid
 
 // 注意：GET /api/rest/articles/:id 每次调用阅读数 +1，只在进入页面时请求一次
@@ -152,14 +154,14 @@ async function removeArticle() {
   if (!article.value) return
   // 会同时删除该文章下的全部评论（包括他人的）
   const ok = await confirmAction(
-    '删除后无法恢复，该文章下的全部评论也会被删除。确认删除？',
-    '删除文章',
+    '删除后无法恢复，该帖子下的全部评论也会被删除。确认删除？',
+    '删除帖子',
     '删除',
   )
   if (!ok) return
   try {
     await Http({ type: 'deleteArticle', data: { id: article.value._id } })
-    ElMessage.success('文章已删除')
+    ElMessage.success('帖子已删除')
     router.push({ name: 'home' })
   } catch {
     // 错误已由 Http 弹出提示
@@ -177,7 +179,7 @@ watch(() => route.params.id, load)
 
     <el-skeleton v-if="loading" :rows="6" animated />
 
-    <el-result v-else-if="notFound" icon="warning" title="文章不存在或加载失败" />
+    <el-result v-else-if="notFound" icon="warning" title="帖子不存在或加载失败" />
 
     <template v-else-if="article">
       <h1 class="title">{{ article.title }}</h1>
@@ -237,12 +239,7 @@ watch(() => route.params.id, load)
       </div>
 
       <div v-if="user.isLoggedIn" class="comment-form">
-        <el-input
-          v-model="commentText"
-          type="textarea"
-          :rows="3"
-          placeholder="写下你的评论"
-        />
+        <el-input v-model="commentText" type="textarea" :rows="3" placeholder="写下你的评论" />
         <el-button
           type="primary"
           class="action"

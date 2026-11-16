@@ -27,7 +27,7 @@ function submit() {
     try {
       // 注销不可恢复且会级联删除他人内容，二次确认
       await ElMessageBox.confirm(
-        '注销后无法恢复。将删除你的全部专栏和文章（包括他人在你专栏中发表的文章），以及他人在你文章下的评论。',
+        '注销后无法恢复。将删除你的全部专栏和帖子（包括他人在你专栏中发表的帖子），以及他人在你帖子下的评论。',
         '确认注销账号？',
         {
           confirmButtonText: '确认注销',
@@ -63,16 +63,25 @@ function submit() {
       type="error"
       show-icon
       :closable="false"
-      title="注销会删除你的全部专栏和文章，连带删除他人在你专栏中发表的文章与评论，且无法恢复。"
+      title="注销会删除你的全部专栏和帖子，连带删除他人在你专栏中发表的帖子与评论，且无法恢复。"
     />
-    <el-form ref="formRef" :model="form" :rules="rules" label-position="top" class="form" @submit.prevent="submit">
+    <el-form
+      ref="formRef"
+      :model="form"
+      :rules="rules"
+      label-position="top"
+      class="form"
+      @submit.prevent="submit"
+    >
       <el-form-item label="当前密码" prop="password">
         <el-input v-model="form.password" type="password" show-password />
       </el-form-item>
     </el-form>
     <template #footer>
       <el-button class="action" @click="open = false">取消</el-button>
-      <el-button type="danger" class="action" :loading="submitting" @click="submit">注销账号</el-button>
+      <el-button type="danger" class="action" :loading="submitting" @click="submit"
+        >注销账号</el-button
+      >
     </template>
   </el-dialog>
 </template>

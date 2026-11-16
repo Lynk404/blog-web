@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { Collection, Document } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import Http from '../api'
+import ColumnSidebar from '../components/ColumnSidebar.vue'
+import PanelBox from '../components/PanelBox.vue'
 import { useUserStore } from '../stores/user'
 import type { Column } from '../types/api'
 import { confirmAction } from '../utils/confirm'
@@ -16,6 +19,7 @@ const notFound = ref(false)
 const column = ref<Column | null>(null)
 
 const isOwner = computed(() => !!column.value && user.isLoggedIn && column.value.uid === user.uid)
+const sidebarRef = ref<{ load: () => Promise<void> }>()
 
 const editVisible = ref(false)
 const editSaving = ref(false)
@@ -55,6 +59,7 @@ function submitEdit() {
       const name = editForm.name.trim()
       await Http({ type: 'putColumn', data: { id: column.value._id, name } })
       column.value.name = name
+      await sidebarRef.value?.load()
       ElMessage.success('专栏名已修改')
       editVisible.value = false
     } catch {
@@ -67,9 +72,9 @@ function submitEdit() {
 
 async function removeColumn() {
   if (!column.value) return
-  // 级联：专栏下所有文章（包括他人发表的）及这些文章的评论都会被删除
+  // 级联：专栏下所有帖子（包括他人发表的）及这些帖子的评论都会被删除
   const ok = await confirmAction(
-    '删除专栏会同时删除该专栏下的全部文章（包括他人发表的文章）以及这些文章的评论，且无法恢复。确认删除？',
+    '删除专栏会同时删除该专栏下的全部帖子（包括他人发表的帖子）以及这些帖子的评论，且无法恢复。确认删除？',
     '删除专栏',
     '删除',
   )
@@ -83,103 +88,256 @@ async function removeColumn() {
   }
 }
 
+function publish() {
+  if (!column.value) return
+  router.push({ name: 'article-create', query: { column: column.value._id } })
+}
+
+function openArticle(id: string) {
+  router.push({ name: 'article-detail', params: { id } })
+}
+
 onMounted(load)
 watch(() => route.params.id, load)
 </script>
 
 <template>
-  <div class="column-detail">
-    <el-button link class="back" @click="router.back()">← 返回</el-button>
-    <el-skeleton v-if="loading" :rows="4" animated />
-    <el-result v-else-if="notFound" icon="warning" title="专栏不存在或加载失败" />
-    <template v-else-if="column">
-      <div class="header">
-        <h2>{{ column.name }}</h2>
-        <div v-if="isOwner" class="owner-actions">
-          <el-button class="action" @click="openEdit">修改专栏名</el-button>
-          <el-button class="action" type="danger" plain @click="removeColumn">删除专栏</el-button>
-        </div>
-      </div>
+  <div class="column-page">
+    <ColumnSidebar ref="sidebarRef" show-create />
 
-      <el-empty v-if="!column.aids?.length" description="该专栏暂无文章" />
-      <el-card
-        v-for="item in column.aids ?? []"
-        :key="item._id"
-        class="item"
-        shadow="hover"
-        @click="router.push({ name: 'article-detail', params: { id: item._id } })"
-      >
-        <div class="title">{{ item.title }}</div>
-        <div class="meta">
-          <span v-if="item.author">{{ item.author.nikname }}</span>
-          <span>阅读 {{ item.hit_num }}</span>
-        </div>
-      </el-card>
+    <main class="column-main">
+      <el-skeleton v-if="loading" :rows="6" animated />
+      <el-result v-else-if="notFound" icon="warning" title="专栏不存在或加载失败" />
 
-      <el-dialog v-model="editVisible" title="修改专栏名" width="400px">
-        <el-form
-          ref="editFormRef"
-          :model="editForm"
-          :rules="editRules"
-          label-position="top"
-          @submit.prevent="submitEdit"
-        >
-          <el-form-item label="专栏名称" prop="name">
-            <el-input v-model="editForm.name" placeholder="请填写专栏名称" />
-          </el-form-item>
-        </el-form>
-        <template #footer>
-          <el-button class="action" @click="editVisible = false">取消</el-button>
-          <el-button type="primary" class="action" :loading="editSaving" @click="submitEdit">
-            保存
-          </el-button>
-        </template>
-      </el-dialog>
-    </template>
+      <template v-else-if="column">
+        <section class="column-hero">
+          <div class="hero-cover">
+            <el-icon :size="34" aria-hidden="true"><Collection /></el-icon>
+          </div>
+          <div class="hero-text">
+            <h1>{{ column.name }}</h1>
+            <p>共 {{ column.aids?.length ?? 0 }} 篇帖子</p>
+          </div>
+          <div v-if="isOwner" class="hero-actions">
+            <el-button type="primary" class="action" @click="publish">发布帖子</el-button>
+            <el-button class="action" @click="openEdit">修改专栏名</el-button>
+            <el-button class="action" type="danger" plain @click="removeColumn">删除专栏</el-button>
+          </div>
+        </section>
+
+        <PanelBox title="帖子列表" :icon="Document" variant="hot">
+          <el-empty v-if="!column.aids?.length" description="该专栏暂无帖子" />
+          <ul v-else class="post-list">
+            <li v-for="item in column.aids" :key="item._id">
+              <button type="button" class="post-row" @click="openArticle(item._id)">
+                <img v-if="item.cover" :src="item.cover" alt="" class="post-cover" loading="lazy" />
+                <span v-else class="post-cover post-cover-empty">
+                  <el-icon :size="22" aria-hidden="true"><Document /></el-icon>
+                </span>
+                <span class="post-main">
+                  <span class="post-title">{{ item.title }}</span>
+                  <span class="post-meta">
+                    <span>阅读 {{ item.hit_num }}</span>
+                    <span>评论 {{ item.comment_num }}</span>
+                    <span>点赞 {{ item.like_num }}</span>
+                  </span>
+                </span>
+                <span class="post-date">{{ item.date }}</span>
+              </button>
+            </li>
+          </ul>
+        </PanelBox>
+
+        <el-dialog v-model="editVisible" title="修改专栏名" width="400px" append-to-body>
+          <el-form
+            ref="editFormRef"
+            :model="editForm"
+            :rules="editRules"
+            label-position="top"
+            @submit.prevent="submitEdit"
+          >
+            <el-form-item label="专栏名称" prop="name">
+              <el-input v-model="editForm.name" placeholder="请填写专栏名称" />
+            </el-form-item>
+          </el-form>
+          <template #footer>
+            <el-button class="action" @click="editVisible = false">取消</el-button>
+            <el-button type="primary" class="action" :loading="editSaving" @click="submitEdit">
+              保存
+            </el-button>
+          </template>
+        </el-dialog>
+      </template>
+    </main>
   </div>
 </template>
 
 <style scoped>
-.back {
-  margin-bottom: 12px;
+.column-page {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
 }
 
-.header {
+.column-main {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.column-hero {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 20px 24px;
+  border: 1px solid var(--el-border-color);
+  border-radius: 12px;
+  background: var(--app-hot-gradient);
+}
+
+.hero-cover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+  border-radius: 10px;
+  background: var(--el-fill-color);
+  color: var(--el-color-primary-light-3);
+}
+
+.hero-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.hero-text h1 {
+  margin: 0;
+  color: var(--app-on-purple);
+  font-size: 24px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.hero-text p {
+  margin: 6px 0 0;
+  color: var(--app-on-purple);
+  font-size: 13px;
+  opacity: 0.72;
+}
+
+.hero-actions {
+  display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 12px;
-}
-
-.header h2 {
-  margin: 0;
-}
-
-.owner-actions {
-  display: flex;
-  gap: 12px;
+  margin-left: auto;
 }
 
 .action {
   min-height: 44px;
 }
 
-.item {
-  margin-bottom: 12px;
+.post-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.post-list li + li {
+  border-top: 1px solid var(--el-border-color-lighter);
+}
+
+.post-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--el-text-color-regular);
+  font: inherit;
+  text-align: left;
   cursor: pointer;
 }
 
-.title {
-  font-weight: 600;
-  margin-bottom: 6px;
+.post-row:hover {
+  background: var(--app-gold-soft);
 }
 
-.meta {
-  display: flex;
-  gap: 16px;
-  font-size: 13px;
+.post-row:hover .post-title {
+  color: var(--el-color-primary-light-3);
+}
+
+.post-cover {
+  flex-shrink: 0;
+  width: 84px;
+  height: 64px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--el-fill-color);
+}
+
+.post-cover-empty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: var(--el-text-color-secondary);
+}
+
+.post-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 8px;
+}
+
+.post-title {
+  overflow: hidden;
+  color: var(--el-text-color-primary);
+  font-size: 16px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.post-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  color: var(--el-text-color-secondary);
+  font-size: 13px;
+}
+
+.post-date {
+  flex-shrink: 0;
+  margin-left: auto;
+  color: var(--el-text-color-secondary);
+  font-size: 13px;
+}
+
+@media (max-width: 820px) {
+  .column-page {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .column-main {
+    gap: 16px;
+  }
+
+  .hero-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .post-date {
+    display: none;
+  }
 }
 </style>

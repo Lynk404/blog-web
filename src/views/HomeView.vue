@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { RouterView, useRouter } from 'vue-router'
+import { StarFilled } from '@element-plus/icons-vue'
 import Http from '../api'
-import type { ArticleBrief, Column, Pagination } from '../types/api'
+import ColumnSidebar from '../components/ColumnSidebar.vue'
+import PanelBox from '../components/PanelBox.vue'
+import type { ArticleBrief, Pagination } from '../types/api'
 
 const PAGE_SIZE = 10
 const HOT_LIMIT = 5
@@ -15,8 +18,6 @@ const page = ref(1)
 const loading = ref(false)
 const result = ref<Pagination<ArticleBrief> | null>(null)
 
-const columns = ref<Column[]>([])
-const columnsLoading = ref(false)
 const hot = ref<ArticleBrief[]>([])
 
 async function loadArticles() {
@@ -30,19 +31,6 @@ async function loadArticles() {
     // 错误已由 Http 弹出提示
   } finally {
     loading.value = false
-  }
-}
-
-async function loadColumns() {
-  columnsLoading.value = true
-  try {
-    // 后端默认 size 为 100，与首页左栏展示上限一致
-    const data = await Http<Pagination<Column>>({ type: 'columns' })
-    columns.value = data.list
-  } catch {
-    // 错误已由 Http 弹出提示
-  } finally {
-    columnsLoading.value = false
   }
 }
 
@@ -69,13 +57,8 @@ function openArticle(id: string) {
   router.push({ name: 'article-detail', params: { id } })
 }
 
-function openColumn(id: string) {
-  router.push({ name: 'column-detail', params: { id } })
-}
-
 onMounted(() => {
   void loadArticles()
-  void loadColumns()
   void loadHot()
 })
 </script>
@@ -83,56 +66,33 @@ onMounted(() => {
 <template>
   <div class="home">
     <div class="home-grid">
-      <aside class="sidebar left panel" aria-labelledby="columns-title">
-        <div class="panel-head">
-          <h2 id="columns-title">专栏</h2>
-          <RouterLink :to="{ name: 'columns' }" class="more">全部专栏</RouterLink>
-        </div>
-
-        <div class="panel-body">
-          <el-skeleton v-if="columnsLoading" :rows="4" animated />
-          <el-empty v-else-if="columns.length === 0" description="暂无专栏" :image-size="60" />
-          <ul v-else class="column-list">
-            <li v-for="col in columns" :key="col._id">
-              <button type="button" class="column-item" @click="openColumn(col._id)">
-                <span class="column-name">{{ col.name }}</span>
-                <span class="column-count">{{ col.aids?.length ?? 0 }} 篇</span>
-              </button>
-            </li>
-          </ul>
-        </div>
-      </aside>
+      <ColumnSidebar />
 
       <div class="center-column">
-        <section v-if="hot.length" class="hot panel" aria-labelledby="hot-title">
-          <div class="panel-head">
-            <h2 id="hot-title" class="section-title">热门文章</h2>
-          </div>
-          <div class="panel-body">
-            <ol class="hot-list">
-              <li v-for="(item, index) in hot" :key="item._id">
-                <button type="button" class="hot-item" @click="openArticle(item._id)">
-                  <span
-                    class="hot-rank"
-                    :class="{
-                      'is-gold': index === 0,
-                      'is-silver': index === 1,
-                      'is-bronze': index === 2,
-                    }"
-                  >
-                    {{ index + 1 }}
-                  </span>
-                  <span class="hot-title">{{ item.title }}</span>
-                  <span class="hot-meta">阅读 {{ item.hit_num }}</span>
-                </button>
-              </li>
-            </ol>
-          </div>
-        </section>
+        <PanelBox v-if="hot.length" title="热门帖子" :icon="StarFilled" variant="hot">
+          <ol class="hot-list">
+            <li v-for="(item, index) in hot" :key="item._id">
+              <button type="button" class="hot-item" @click="openArticle(item._id)">
+                <span
+                  class="hot-rank"
+                  :class="{
+                    'is-gold': index === 0,
+                    'is-silver': index === 1,
+                    'is-bronze': index === 2,
+                  }"
+                >
+                  {{ index + 1 }}
+                </span>
+                <span class="hot-title">{{ item.title }}</span>
+                <span class="hot-meta">阅读 {{ item.hit_num }}</span>
+              </button>
+            </li>
+          </ol>
+        </PanelBox>
 
-        <section class="feed" aria-label="文章列表">
+        <section class="feed" aria-label="帖子列表">
           <el-skeleton v-if="loading" :rows="3" animated />
-          <el-empty v-else-if="result && result.list.length === 0" description="暂无文章" />
+          <el-empty v-else-if="result && result.list.length === 0" description="暂无帖子" />
           <el-card
             v-for="item in result?.list ?? []"
             :key="item._id"
@@ -201,110 +161,6 @@ onMounted(() => {
   min-height: 1px;
 }
 
-.panel {
-  overflow: hidden;
-  border: 1px solid var(--el-border-color);
-  border-radius: 12px;
-  background: var(--app-surface);
-}
-
-.panel-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 12px 16px;
-  background: var(--app-purple-gradient);
-}
-
-.panel-head h2 {
-  margin: 0;
-  color: var(--app-on-purple);
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.panel-body {
-  padding: 8px;
-}
-
-.more {
-  color: var(--app-on-purple);
-  font-size: 12px;
-  opacity: 0.78;
-  text-decoration: none;
-}
-
-.more:hover {
-  color: var(--el-color-primary-light-7);
-  opacity: 1;
-}
-
-.column-list {
-  display: flex;
-  flex-direction: column;
-  max-height: calc(100vh - 180px);
-  margin: 0;
-  padding: 0;
-  overflow-y: auto;
-  list-style: none;
-}
-
-.column-list li + li {
-  border-top: 1px solid var(--el-border-color-lighter);
-}
-
-.column-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  width: 100%;
-  min-height: 44px;
-  padding: 0 10px 0 12px;
-  border: none;
-  border-left: 2px solid transparent;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--el-text-color-regular);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.column-item:hover {
-  border-left-color: var(--el-color-primary);
-  background: var(--app-gold-soft);
-  color: var(--el-text-color-primary);
-}
-
-.column-name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.column-count {
-  flex-shrink: 0;
-  font-size: 12px;
-  color: var(--el-text-color-secondary);
-}
-
-.feed {
-  min-width: 0;
-}
-
-.hot .panel-head {
-  background: var(--app-hot-gradient);
-}
-
-.section-title {
-  margin: 0;
-  color: var(--app-on-purple);
-  font-size: 15px;
-  font-weight: 600;
-}
-
 .hot-list {
   margin: 0;
   padding: 0;
@@ -320,13 +176,14 @@ onMounted(() => {
   align-items: center;
   gap: 10px;
   width: 100%;
-  min-height: 44px;
+  min-height: 52px;
   padding: 0 8px;
   border: none;
   border-radius: 6px;
   background: transparent;
   color: var(--el-text-color-regular);
   font: inherit;
+  font-size: 15px;
   text-align: left;
   cursor: pointer;
 }
@@ -344,12 +201,12 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: var(--el-fill-color-light);
   color: var(--el-text-color-secondary);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -377,7 +234,7 @@ onMounted(() => {
 
 .hot-meta {
   flex-shrink: 0;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--el-text-color-secondary);
 }
 
@@ -436,25 +293,6 @@ onMounted(() => {
 
   .center-column {
     gap: 16px;
-  }
-
-  .column-list {
-    flex-direction: row;
-    gap: 8px;
-    max-height: none;
-    padding-bottom: 4px;
-    overflow-x: auto;
-    overflow-y: hidden;
-  }
-
-  .column-list li + li {
-    border-top: none;
-  }
-
-  .column-item {
-    min-width: 140px;
-    padding: 0 10px;
-    border: 1px solid var(--el-border-color-lighter);
   }
 }
 
