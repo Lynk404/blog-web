@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import AppBrand from '../components/AppBrand.vue'
+import MessageBell from '../components/MessageBell.vue'
 import { useUserStore } from '../stores/user'
 import { confirmLogout } from '../utils/logout'
 
@@ -39,6 +40,8 @@ async function handleUserCommand(command: string) {
           <span class="search-label-short" aria-hidden="true">搜索</span>
         </button>
 
+        <MessageBell v-if="user.isLoggedIn" />
+
         <div class="auth">
           <el-dropdown v-if="user.isLoggedIn" trigger="click" @command="handleUserCommand">
             <button type="button" class="avatar-trigger" aria-label="用户菜单">
@@ -75,9 +78,49 @@ async function handleUserCommand(command: string) {
 }
 
 .app-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
   height: 72px;
   padding: 0;
   border-bottom: 1px solid var(--el-border-color);
+  background: var(--app-header-bg);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+/* 底边：模糊光晕 + 缓慢横向扫光，呼应 Logo 的流光 */
+.app-header::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--app-header-shine) 35%,
+    var(--app-header-gold) 50%,
+    var(--app-header-shine) 65%,
+    transparent 100%
+  );
+  background-size: 45% 100%;
+  background-repeat: no-repeat;
+  box-shadow: 0 4px 18px var(--app-header-glow);
+  filter: blur(1px);
+  pointer-events: none;
+  animation: header-flow 9s linear infinite;
+}
+
+@keyframes header-flow {
+  from {
+    background-position: -60% 0;
+  }
+
+  to {
+    background-position: 160% 0;
+  }
 }
 
 .header-inner {
@@ -191,6 +234,16 @@ async function handleUserCommand(command: string) {
 
   .search-label-short {
     display: inline;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-header::after {
+    background: var(--el-border-color);
+    background-size: auto;
+    box-shadow: none;
+    filter: none;
+    animation: none;
   }
 }
 </style>

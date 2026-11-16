@@ -12,6 +12,7 @@ Yes论坛前端应用，基于 Vue 3 + Vite + TypeScript 构建，对接 `blog-s
 | Vue Router | ^5.0.4 | 路由管理 |
 | Pinia | ^3.0.4 | 状态管理 |
 | Element Plus | ^2.14.8 | UI 组件库，按需导入 |
+| @element-plus/icons-vue | ^2.3.2 | Element Plus 官方图标包（消息铃铛等） |
 | Vite | ^8.0.8 | 构建工具 |
 | TypeScript | ~6.0.0 | 类型检查（`vue-tsc`） |
 | Axios | ^1.21.1 | HTTP 请求 |
@@ -36,7 +37,7 @@ blog-web/
 │   │   ├── request.ts         # axios 实例与拦截器（Token 注入、401 清除登录态并触发跳转）
 │   │   └── index.ts           # 统一请求入口 Http()，所有接口经此调用
 │   ├── assets/                # 参与构建的静态资源（main.css 为全局样式）
-│   ├── components/            # AppBrand.vue（logo）、MarkdownEditor.vue / MarkdownPreview.vue（v-md-editor 封装）、profile/（编辑资料、修改密码、注销账号弹窗）
+│   ├── components/            # AppBrand.vue（logo）、MessageBell.vue（消息铃铛，接口预留）、MarkdownEditor.vue / MarkdownPreview.vue（v-md-editor 封装）、profile/（编辑资料、修改密码、注销账号弹窗）
 │   ├── config/                # 接口表、基础配置、表单与弹窗、校验规则
 │   ├── layouts/               # AppLayout.vue（顶部导航 + 头像菜单）、AuthLayout.vue（登录、注册、个人主页，无导航）
 │   ├── router/                # 路由配置与守卫
@@ -132,7 +133,7 @@ npm run dev
 ### 路由
 
 - 路由配置集中在 `src/router/index.ts`。主站页面挂载在 `AppLayout`（顶部仅 logo、搜索框、头像菜单）下；登录、注册、个人主页、写文章/编辑文章挂载在 `AuthLayout`（无导航）下，未匹配路径进入 404 页面。
-- 首页使用 `meta.wide: true`，主区域放宽到 1600px；其他主站页面保持 960px。首页三栏比例为 `260px minmax(0, 1fr) 260px`，左右等宽使中栏居中；中栏为独立纵向容器（热门文章 → 文章列表），左栏与中栏顶部对齐，高度各自随内容，不拉伸。`≤1280px` 隐藏右栏，`≤820px` 变单栏。
+- 首页使用 `meta.wide: true`，主区域放宽到 1600px；其他主站页面保持 960px。首页三栏比例为 `260px minmax(0, 1fr) 260px`，栏间距 40px，左右等宽使中栏居中；中栏为独立纵向容器（热门文章 → 文章列表），左栏与中栏顶部对齐，高度各自随内容，不拉伸。`≤1280px` 隐藏右栏，`≤820px` 变单栏。
 - 搜索页 `/search` 是首页的嵌套子路由，`HomeView` 保持挂载，搜索弹窗以蒙版覆盖主页；关键词写入 `?q=`。
 - 页面组件使用懒加载：`component: () => import('../views/Xxx.vue')`。
 - `meta.requiresAuth` 标记需登录页面（发布/编辑文章、个人主页），`meta.guestOnly` 标记仅未登录可访问的页面（登录、注册），`meta.centered` 标记认证布局中内容需上下居中的页面（登录、注册）。守卫在 `router.beforeEach` 中处理。
@@ -158,12 +159,14 @@ npm run dev
 ### 登录与自动登录
 
 - 登录态保存在 `localStorage`（token 键 `ua_jot`），刷新页面后自动恢复：启动时调用 `GET /index` 校验，通过后拉取 `GET /user/` 资料。
-- 顶部右侧为搜索框与头像菜单；未登录时显示搜索框与"登录""注册"按钮。点击头像打开菜单：个人主页、退出登录。退出登录均需在弹出框中确认。
+- 顶部右侧为搜索框、消息铃铛与头像菜单；未登录时显示搜索框与"登录""注册"按钮。点击头像打开菜单：个人主页、退出登录。退出登录均需在弹出框中确认。
+- 消息铃铛仅登录后显示，点击展开消息下拉列表，点击条目用蒙版弹窗查看内容。**后端消息接口尚未实现**，当前为本地占位数据。
 - 登录、注册、个人主页、写文章页不显示顶部导航栏，左上角 logo 可返回首页。登录与注册内容放在卡片中，并上下左右居中。
 
 ### 视觉
 
-- 深色主题（近黑底 `#090909` + 金色主强调 + 紫色次强调），卡片背景 `#1d1d1d`，配色与变量定义见 `src/assets/main.css`。字体为系统无衬线字体。左栏标题渐变 `#575659 → #3a2f45`，热门标题渐变 `#362a42 → #382812`；热门前三名为金/银/铜，搜索框为胶囊形。文章卡片悬停时边框变金、背景提亮并有轻微放大；`prefers-reduced-motion` 下取消放大。
+- 深色主题（近黑底 `#090909` + 金色主强调 + 紫色次强调），卡片背景 `#1d1d1d`，配色与变量定义见 `src/assets/main.css`。字体为系统无衬线字体。左栏标题渐变 `#575659 → #3a2f45`，热门标题渐变 `#362a42 → #382812`；热门前三名为金/银/铜，搜索框为胶囊形，消息铃铛背景与搜索框一致。
+- 顶栏吸附在页面顶部，半透明背景 + 背景模糊；底边带模糊光晕与缓慢扫光，`prefers-reduced-motion` 下恢复静态边框。文章卡片悬停时边框变金、背景提亮并有轻微放大；`prefers-reduced-motion` 下取消放大。
 - Logo 为“Yes论坛”，主色 `#405a6f`，带渐变扫光与背后光晕动画；`prefers-reduced-motion` 下静止。Logo 与“全部专栏”链接无下划线。
 - Markdown 预览使用 v-md-editor 的 github 主题，容器类为 `github-markdown-body`；深色覆盖同时适配 `.markdown-body` 与该类，表格、代码块、链接、标题边框均为深色。
 
@@ -179,6 +182,7 @@ npm run dev
 - **个人与他人页面**：用户公开页 `/users/:id`（接口已验证可用）；"我的文章"列表（`query[author]` 已验证可用）。
 - **列表与数据量**：首页中栏后续改为懒加载（当前一次性请求当前页 10 条，先记录、暂不实现）；首页右栏暂为空结构；专栏列表与编辑页专栏下拉仅取前 100 条；文章评论全部内嵌、无分页。
 - **文章封面与图片**：后端支持 `cover` 与图片上传，前端未做；编辑器中的图片仅支持外部地址。
+- **消息中心**：后端消息接口未实现；`MessageBell.vue` 已用本地占位数据完成下拉列表与内容蒙版，接入后替换数据源。
 - **未决定事项**：环境变量说明、部署方案。
 - **验证**：浏览器端到端测试按 `docs/integration/manual-checklist.md` 逐项进行。
 

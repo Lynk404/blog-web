@@ -29,7 +29,7 @@ npm run format       # prettier --write --experimental-cli src/
 ## 代码库现状
 
 - 技术栈：Vue 3 + TypeScript（`<script setup lang="ts">`）+ Vite 8 + Pinia + Vue Router + Element Plus（按需导入）。
-- 已完成：布局与路由、只读浏览、登录注册、自动登录、头像菜单、个人主页（独立页面）、退出二次确认、登录注册卡片与居中、深色主题、三栏首页（左栏专栏、中栏热门与文章、右栏预留）、搜索蒙版页、全屏写文章页，以及写入功能（评论、点赞、发布文章、新建专栏、编辑资料、头像、改密码、注销），编辑与删除（文章、评论、专栏，含级联提示），Markdown 编辑与预览（v-md-editor），路由顶部进度条（nprogress）。类型检查与构建通过。
+- 已完成：布局与路由、只读浏览、登录注册、自动登录、头像菜单、个人主页（独立页面）、退出二次确认、登录注册卡片与居中、深色主题、三栏首页（左栏专栏、中栏热门与文章、右栏预留）、搜索蒙版页、全屏写文章页、消息铃铛 UI（本地占位，接口预留），以及写入功能（评论、点赞、发布文章、新建专栏、编辑资料、头像、改密码、注销），编辑与删除（文章、评论、专栏，含级联提示），Markdown 编辑与预览（v-md-editor），路由顶部进度条（nprogress）。类型检查与构建通过。
 - **接口层已验证**（后端在线）：只读接口与未登录 401 已验证；写接口、编辑与删除接口（含级联）均已用临时账号联调通过，测试脚本在项目外、未入库。
 - **部分浏览器验证**（2026-11-16）：用 headless Chrome 实测首页三栏与移动端布局、搜索蒙版与结果、专栏页发布按钮、全屏写文章页及专栏预选；注册流程可用，临时账号已注销。其余流程（自动登录、头像菜单、个人主页、评论增删改、文章编辑/删除、进度条）仍未做浏览器端到端测试，按 `docs/integration/manual-checklist.md` 检查。
 - 已实现页面：首页（三栏：左栏专栏、中栏热门与文章列表、右栏空位；无搜索栏和写文章入口）、搜索（`/search` 蒙版覆盖首页，嵌套路由）、发布文章与编辑文章（全屏独立布局，登录，`article-create` 与 `article-edit` 复用同一组件，仅本人专栏可发布）、文章详情（Markdown 正文、评论增删改、点赞、发表评论，作者可编辑或删除文章）、专栏列表（登录后新建专栏；本人专栏显示“发布帖子”）、专栏详情（作者可改名、删除）、个人主页（资料、头像、编辑资料、改密码、注销）、登录、注册、404。
@@ -61,7 +61,7 @@ npm run format       # prettier --write --experimental-cli src/
   - **主站** `AppLayout`（`src/layouts/AppLayout.vue`，顶部仅 logo + 搜索框 + 头像菜单，无首页/专栏菜单）：`home`（`meta.wide: true`，三栏）、其子路由 `search`（搜索蒙版）、`article-detail`、`columns`、`column-detail`。
   - **独立页面** `AuthLayout`（`src/layouts/AuthLayout.vue`，无导航栏，仅左上角 logo `src/components/AppBrand.vue` 返回首页）：`login`、`register`（`guestOnly`，路由 meta `centered: true`，内容上下左右居中），以及 `profile`、`article-create`、`article-edit`（均 `requiresAuth`，顶部对齐；写文章与编辑页为全屏布局）。
 - `search` 作为 `home` 的子路由，使 `HomeView` 在打开搜索时保持挂载，弹窗以蒙版覆盖主页；`HomeView` 内必须保留 `<RouterView />` 出口。
-- `AppLayout` 的 `el-main` 根据 `route.meta.wide` 放宽到 1600px；其他主站页面保持 960px。首页网格为 `260px minmax(0, 1fr) 260px`，左右等宽使中栏居中；中栏是独立纵向容器（热门文章 → 文章列表），左栏与中栏顶部对齐，高度各自随内容，不拉伸。`≤1280px` 隐藏右栏变两栏，`≤820px` 变单栏。
+- `AppLayout` 的 `el-main` 根据 `route.meta.wide` 放宽到 1600px；其他主站页面保持 960px。首页网格为 `260px minmax(0, 1fr) 260px`，栏间距 40px，左右等宽使中栏居中；中栏是独立纵向容器（热门文章 → 文章列表），左栏与中栏顶部对齐，高度各自随内容，不拉伸。`≤1280px` 隐藏右栏变两栏，`≤820px` 变单栏。
 - 顶部搜索框是按钮（不是输入框），点击进入 `search`；真实输入与结果都在蒙版内。
 - 未匹配路径进入 `not-found`。
 - 页面组件一律懒加载，路径为 `() => import('../views/Xxx.vue')`。
@@ -79,6 +79,12 @@ npm run format       # prettier --write --experimental-cli src/
 - 退出登录统一经 `src/utils/logout.ts` 的 `confirmLogout()`：先弹出 `ElMessageBox` 二次确认，确认后调用 `useUserStore().logout()` 清除 token、uid 与资料。头像菜单与个人主页均使用此入口。
 - 401 处理：`src/api/request.ts` 的响应拦截器对 401 调用 `useUserStore().logout()`，再调用由 `main.ts` 通过 `setUnauthorizedHandler` 注册的处理函数（跳转 `login`，已在登录页则不重复跳转）。注册而非直接 import router，避免循环依赖。
 - 启动阶段（`restoreSession`）发生的 401 发生在注册 handler 之前，因此只清除登录态，不跳转。
+
+### 消息按钮（预留）
+
+- `src/components/MessageBell.vue` 位于 `AppLayout` 顶部搜索框与头像之间，仅登录后显示。
+- 点击铃铛展开下拉列表；点击条目用 `el-dialog` 蒙版展示标题、时间、正文，交互与搜索蒙版一致。
+- **后端消息接口尚未实现**：组件内 `messages` 为本地占位数据，接入接口后替换数据来源；不要把占位数据当作真实消息。
 
 ### 接口调用链路
 
@@ -132,7 +138,8 @@ npm run format       # prettier --write --experimental-cli src/
 
 - 样式集中在 `src/assets/main.css`，使用 `html:root` 覆盖 Element Plus 的 `--el-*` 变量（优先级高于库自带的 `:root` 定义，避免加载顺序影响覆盖）。
 - 配色：近黑底 + 金色主强调 + 紫色次强调。背景 `#090909`，卡片/面板 `#1d1d1d`，悬停背景 `#252525`，浮层 `#242424`，边框 `#2f2f35`，主文字 `#f4f4f5`，常规文字 `#d4d4d8`，辅助文字 `#9a9aa3`；金色 `#d4a63a`。左栏标题渐变 `#575659 → #3a2f45`，热门标题渐变 `#362a42 → #382812`。主按钮为金底深色文字。紫色、金色软背景、排行榜银/铜等使用 `main.css` 的 `--app-*` 变量。页面中禁止硬编码颜色，统一使用 `var(--el-*)` 或 `var(--app-*)`。
-- 首页栏目头（专栏、热门文章）使用渐变；热门排名前三分别为金、银、铜；搜索框为胶囊形，悬停/聚焦金色边框；头像悬停金色描边；顶栏高度 72px（移动端 64px）。
+- 首页栏目头（专栏、热门文章）使用渐变；热门排名前三分别为金、银、铜；搜索框为胶囊形，悬停/聚焦金色边框；消息铃铛背景与搜索框一致（`--app-surface` + 边框），头像悬停金色描边；顶栏高度 72px（移动端 64px）。
+- 顶栏使用 `position: sticky` 吸顶，半透明背景 + `backdrop-filter: blur`，底边有模糊光晕和缓慢横向扫光（呼应 Logo）；`prefers-reduced-motion` 时底边恢复静态边框。
 - 首页文章卡片悬停时 `translateY(-2px) scale(1.015)`，搜索弹窗结果卡片同步；`prefers-reduced-motion: reduce` 时取消位移与缩放。
 - Logo 文案为 `Yes论坛`，字号 24px（移动端 20px），主色 `#405a6f`，使用 `--app-logo-*` 变量；文字有渐变扫光、背后有蓝色呼吸光晕，`prefers-reduced-motion` 时关闭动画。`AppBrand` 与首页“全部专栏”链接不使用下划线。
 - 字体：系统无衬线字体栈。衬线字体方案已确认**暂不采用**，以后再说。
@@ -173,6 +180,7 @@ npm run format       # prettier --write --experimental-cli src/
   - 专栏列表只取前 100 条，发布页与编辑页的专栏下拉受此限制，需要分页或搜索。
   - 文章评论全部内嵌在详情接口中，无分页；评论多时需要后端或前端方案。
 - **文章封面与图片**：`cover` 字段与 `POST /upload/article` 后端已支持，前端未做。编辑器中的图片目前只能使用外部地址的 Markdown 语法。
+- **消息中心**：后端接口未实现；`MessageBell.vue` 已用本地占位数据完成下拉列表与内容蒙版，接入后替换数据源。
 - **未决定事项**：环境变量说明、部署方案、衬线字体（已确认暂缓）。
 - **验证**：浏览器端到端测试尚未做，按 `docs/integration/manual-checklist.md` 逐项走，重点是第 4 至 7 节。
 

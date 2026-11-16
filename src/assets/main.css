@@ -59,6 +59,12 @@ html:root {
   --app-logo-color: #405a6f;
   --app-logo-shine: #8fb0c9;
   --app-logo-glow: rgba(64, 90, 111, 0.7);
+
+  /* 顶栏：半透明底 + 底部流光 */
+  --app-header-bg: rgba(9, 9, 9, 0.82);
+  --app-header-glow: rgba(64, 90, 111, 0.35);
+  --app-header-shine: rgba(143, 176, 201, 0.85);
+  --app-header-gold: rgba(212, 166, 58, 0.7);
 }
 
 *,

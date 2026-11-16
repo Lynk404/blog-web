@@ -178,7 +178,7 @@ onMounted(() => {
 .home-grid {
   display: grid;
   grid-template-columns: 260px minmax(0, 1fr) 260px;
-  gap: 24px;
+  gap: 40px;
   align-items: start;
 }
 
