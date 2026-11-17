@@ -57,6 +57,12 @@ function goLogin() {
   router.push({ name: 'login', query: { redirect: route.fullPath } })
 }
 
+// 直接打开帖子链接时没有上一条历史，回首页而不是无反应
+function goBack() {
+  if (window.history.state?.back) router.back()
+  else router.push({ name: 'home' })
+}
+
 // 后端不限制重复点赞，前端在本页内只允许成功点赞一次
 async function like() {
   if (!article.value) return
@@ -180,7 +186,7 @@ watch(() => route.params.id, load)
 
 <template>
   <div class="detail">
-    <el-button link class="back" @click="router.back()">← 返回</el-button>
+    <el-button link class="back" @click="goBack">← 返回</el-button>
 
     <el-skeleton v-if="loading" class="loading" :rows="8" animated />
 

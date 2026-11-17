@@ -145,6 +145,7 @@ npm run dev
 - 页面组件使用懒加载：`component: () => import('../views/Xxx.vue')`。
 - `meta.requiresAuth` 标记需登录页面（发布/编辑帖子、个人主页），`meta.guestOnly` 标记仅未登录可访问的页面（登录、注册），`meta.centered` 标记认证布局中内容需上下居中的页面（登录、注册）。守卫在 `router.beforeEach` 中处理。
 - 登录后的跳转地址经 `src/utils/redirect.ts` 的 `safeRedirect` 校验，仅允许站内路径。
+- 发布成功用 `router.replace` 跳转帖子详情，编辑器不留在历史记录中；编辑保存时若有历史则回退到原详情，否则用详情页替换编辑页。详情页「返回」在没有历史记录时回首页。
 - 每次路由跳转由 `router.beforeEach` 启动顶部进度条（nprogress），`afterEach` 与 `onError` 结束。
 
 ### 已实现页面

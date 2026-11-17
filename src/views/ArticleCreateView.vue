@@ -132,7 +132,13 @@ function submit() {
           },
         })
         ElMessage.success('修改成功')
-        router.push({ name: 'article-detail', params: { id: articleId.value } })
+        // 编辑页通常从帖子详情进入：有历史时回退到原详情，避免详情页重复入栈；
+        // 直接打开编辑链接时没有历史，用详情页替换当前记录
+        if (window.history.state?.back) {
+          router.back()
+        } else {
+          router.replace({ name: 'article-detail', params: { id: articleId.value } })
+        }
       } else {
         const result = await Http<{ id: string }>({
           type: 'postArticle',
@@ -144,7 +150,8 @@ function submit() {
           },
         })
         ElMessage.success('发布成功')
-        router.push({ name: 'article-detail', params: { id: result.id } })
+        // 替换发布页的历史记录，避免返回时回到编辑器
+        router.replace({ name: 'article-detail', params: { id: result.id } })
       }
     } catch {
       // 错误已由 Http 弹出提示
