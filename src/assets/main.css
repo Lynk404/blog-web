@@ -48,6 +48,8 @@ html:root {
   --app-purple-light: #8a8790;
   --app-purple-gradient: linear-gradient(135deg, #575659 0%, #3a2f45 100%);
   --app-hot-gradient: linear-gradient(135deg, #362a42 0%, #382812 100%);
+  --app-announce-gradient: linear-gradient(120deg, #2b2438 0%, #3a2f45 55%, #57401b 100%);
+  --app-rank-color: #5b4522;
   --app-gold-soft: rgba(212, 166, 58, 0.12);
   --app-gold-active: rgba(212, 166, 58, 0.28);
   --app-on-gold: #1a1408;
@@ -118,6 +120,15 @@ a {
   --el-button-text-color: var(--app-on-gold);
   --el-button-hover-text-color: var(--app-on-gold);
   --el-button-active-text-color: var(--app-on-gold);
+}
+
+/* 下拉菜单悬停：库在 .el-dropdown 与 .el-dropdown__popper 上局部重定义变量，
+ * 只在 html:root 覆盖不生效，需在同样选择器上用 html:root 提高优先级。
+ * 默认 primary-light-9 为近白底，金色字对比度不足。 */
+html:root .el-dropdown,
+html:root .el-dropdown__popper {
+  --el-dropdown-menuItem-hover-fill: var(--app-gold-soft);
+  --el-dropdown-menuItem-hover-color: var(--el-color-primary-light-3);
 }
 
 /* 可点击卡片（shadow="hover"）的悬停反馈。

@@ -5,7 +5,7 @@ withDefaults(
   defineProps<{
     title: string
     icon?: Component
-    variant?: 'purple' | 'hot'
+    variant?: 'purple' | 'hot' | 'rank'
   }>(),
   { variant: 'purple' },
 )
@@ -44,6 +44,14 @@ withDefaults(
 
 .app-panel.is-hot .app-panel-head {
   background: var(--app-hot-gradient);
+}
+
+.app-panel.is-rank {
+  border-color: var(--app-rank-color);
+}
+
+.app-panel.is-rank .app-panel-head {
+  background: var(--app-rank-color);
 }
 
 .app-panel-head {

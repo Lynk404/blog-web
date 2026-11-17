@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { RouterView, useRouter } from 'vue-router'
-import { StarFilled } from '@element-plus/icons-vue'
+import { Document, Trophy } from '@element-plus/icons-vue'
 import Http from '../api'
 import ColumnSidebar from '../components/ColumnSidebar.vue'
+import HomeCarousel from '../components/HomeCarousel.vue'
 import PanelBox from '../components/PanelBox.vue'
 import type { ArticleBrief, Pagination } from '../types/api'
 
@@ -69,7 +70,44 @@ onMounted(() => {
       <ColumnSidebar />
 
       <div class="center-column">
-        <PanelBox v-if="hot.length" title="热门帖子" :icon="StarFilled" variant="hot">
+        <HomeCarousel />
+
+        <PanelBox title="帖子列表" :icon="Document" variant="hot">
+          <el-skeleton v-if="loading" :rows="3" animated />
+          <el-empty v-else-if="result && result.list.length === 0" description="暂无帖子" />
+          <template v-else>
+            <el-card
+              v-for="item in result?.list ?? []"
+              :key="item._id"
+              class="item"
+              shadow="hover"
+              @click="openArticle(item._id)"
+            >
+              <div class="title">{{ item.title }}</div>
+              <div class="meta">
+                <span v-if="item.column">{{ item.column.name }}</span>
+                <span v-if="item.author">{{ item.author.nikname }}</span>
+                <span>阅读 {{ item.hit_num }}</span>
+                <span>评论 {{ item.comment_num }}</span>
+                <span>点赞 {{ item.like_num }}</span>
+              </div>
+            </el-card>
+
+            <el-pagination
+              v-if="result && result.total > 0"
+              class="pager"
+              layout="prev, pager, next, total"
+              :current-page="page"
+              :page-size="PAGE_SIZE"
+              :total="result.total"
+              @current-change="handlePageChange"
+            />
+          </template>
+        </PanelBox>
+      </div>
+
+      <aside class="sidebar right">
+        <PanelBox v-if="hot.length" title="Yes排行榜" :icon="Trophy" variant="rank">
           <ol class="hot-list">
             <li v-for="(item, index) in hot" :key="item._id">
               <button type="button" class="hot-item" @click="openArticle(item._id)">
@@ -83,46 +121,15 @@ onMounted(() => {
                 >
                   {{ index + 1 }}
                 </span>
-                <span class="hot-title">{{ item.title }}</span>
-                <span class="hot-meta">阅读 {{ item.hit_num }}</span>
+                <span class="hot-main">
+                  <span class="hot-title">{{ item.title }}</span>
+                  <span class="hot-meta">阅读 {{ item.hit_num }}</span>
+                </span>
               </button>
             </li>
           </ol>
         </PanelBox>
-
-        <section class="feed" aria-label="帖子列表">
-          <el-skeleton v-if="loading" :rows="3" animated />
-          <el-empty v-else-if="result && result.list.length === 0" description="暂无帖子" />
-          <el-card
-            v-for="item in result?.list ?? []"
-            :key="item._id"
-            class="item"
-            shadow="hover"
-            @click="openArticle(item._id)"
-          >
-            <div class="title">{{ item.title }}</div>
-            <div class="meta">
-              <span v-if="item.column">{{ item.column.name }}</span>
-              <span v-if="item.author">{{ item.author.nikname }}</span>
-              <span>阅读 {{ item.hit_num }}</span>
-              <span>评论 {{ item.comment_num }}</span>
-              <span>点赞 {{ item.like_num }}</span>
-            </div>
-          </el-card>
-
-          <el-pagination
-            v-if="result && result.total > 0"
-            class="pager"
-            layout="prev, pager, next, total"
-            :current-page="page"
-            :page-size="PAGE_SIZE"
-            :total="result.total"
-            @current-change="handlePageChange"
-          />
-        </section>
-      </div>
-
-      <aside class="sidebar right" aria-hidden="true"></aside>
+      </aside>
     </div>
 
     <!-- /search 嵌套路由的出口：搜索弹窗以蒙版覆盖在当前页面上 -->
@@ -153,14 +160,6 @@ onMounted(() => {
   min-width: 0;
 }
 
-.feed {
-  min-width: 0;
-}
-
-.right {
-  min-height: 1px;
-}
-
 .hot-list {
   margin: 0;
   padding: 0;
@@ -176,8 +175,8 @@ onMounted(() => {
   align-items: center;
   gap: 10px;
   width: 100%;
-  min-height: 52px;
-  padding: 0 8px;
+  min-height: 56px;
+  padding: 6px 8px;
   border: none;
   border-radius: 6px;
   background: transparent;
@@ -225,17 +224,25 @@ onMounted(() => {
   color: var(--app-on-rank);
 }
 
-.hot-title {
+.hot-main {
+  display: flex;
   flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.hot-title {
   overflow: hidden;
+  color: var(--el-text-color-primary);
+  font-size: 14px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .hot-meta {
-  flex-shrink: 0;
-  font-size: 13px;
   color: var(--el-text-color-secondary);
+  font-size: 12px;
 }
 
 .item {
