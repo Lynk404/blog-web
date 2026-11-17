@@ -4,6 +4,12 @@ import { useRouter } from 'vue-router'
 import type { UploadRequestOptions } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import Http from '../api'
+import {
+  IMAGE_ACCEPT,
+  IMAGE_MAX_SIZE,
+  IMAGE_MAX_SIZE_LABEL,
+  IMAGE_TYPES,
+} from '../config/upload.config'
 import DeleteAccountDialog from '../components/profile/DeleteAccountDialog.vue'
 import PasswordDialog from '../components/profile/PasswordDialog.vue'
 import ProfileEditDialog from '../components/profile/ProfileEditDialog.vue'
@@ -21,17 +27,14 @@ const editVisible = ref(false)
 const passwordVisible = ref(false)
 const deleteVisible = ref(false)
 
-// 与后端 /upload/user 的限制一致：仅图片类型，单文件不超过 100 KB
-const AVATAR_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
-const AVATAR_MAX_SIZE = 100 * 1024
-
+// 与后端 /upload/user 的限制一致：仅图片类型，单文件不超过 2 MB
 function beforeAvatar(file: File): boolean {
-  if (!AVATAR_TYPES.includes(file.type)) {
+  if (!(IMAGE_TYPES as readonly string[]).includes(file.type)) {
     ElMessage.error('头像仅支持 jpg、png、gif、webp 格式')
     return false
   }
-  if (file.size > AVATAR_MAX_SIZE) {
-    ElMessage.error('头像大小不能超过 100 KB')
+  if (file.size > IMAGE_MAX_SIZE) {
+    ElMessage.error(`头像大小不能超过 ${IMAGE_MAX_SIZE_LABEL}`)
     return false
   }
   return true
@@ -106,7 +109,7 @@ onMounted(async () => {
       <h3 class="section-title">账号设置</h3>
       <div class="settings">
         <el-upload
-          accept="image/jpeg,image/png,image/gif,image/webp"
+          :accept="IMAGE_ACCEPT"
           :show-file-list="false"
           :before-upload="beforeAvatar"
           :http-request="uploadAvatar"

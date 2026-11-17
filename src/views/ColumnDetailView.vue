@@ -257,17 +257,24 @@ watch(() => route.params.id, load)
   gap: 14px;
   width: 100%;
   padding: 12px 8px;
-  border: none;
+  border: 1px solid transparent;
   border-radius: 6px;
   background: transparent;
   color: var(--el-text-color-regular);
   font: inherit;
   text-align: left;
   cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
 }
 
+/* 与首页帖子卡片保持一致的悬停效果：上浮放大、金色边框、背景提亮 */
 .post-row:hover {
-  background: var(--app-gold-soft);
+  border-color: var(--el-color-primary);
+  background: var(--app-surface-hover);
+  transform: translateY(-2px) scale(1.015);
 }
 
 .post-row:hover .post-title {
@@ -319,6 +326,12 @@ watch(() => route.params.id, load)
   margin-left: auto;
   color: var(--el-text-color-secondary);
   font-size: 13px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .post-row:hover {
+    transform: none;
+  }
 }
 
 @media (max-width: 820px) {

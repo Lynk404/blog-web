@@ -1,9 +1,16 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import type { FormInstance, FormRules } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
+import type { FormInstance, FormRules, UploadRequestOptions } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import Http from '../api'
+import {
+  IMAGE_ACCEPT,
+  IMAGE_MAX_SIZE,
+  IMAGE_MAX_SIZE_LABEL,
+  IMAGE_TYPES,
+} from '../config/upload.config'
 import { useUserStore } from '../stores/user'
 import type { Column, Pagination, ArticleDetail } from '../types/api'
 
@@ -17,7 +24,8 @@ const formRef = ref<FormInstance>()
 const submitting = ref(false)
 const loading = ref(false)
 const columns = ref<Column[]>([])
-const form = reactive({ title: '', column: '', content: '' })
+const form = reactive({ title: '', column: '', content: '', cover: '' })
+const coverUploading = ref(false)
 
 // 路由 articles/:id/edit 为编辑模式，同一页面复用
 const articleId = computed(() => (route.name === 'article-edit' ? String(route.params.id) : ''))
@@ -32,6 +40,38 @@ const rules: FormRules = {
   title: [{ required: true, message: '标题必填', trigger: 'blur' }],
   column: [{ required: true, message: '请选择专栏', trigger: 'change' }],
   content: [{ required: true, message: '内容必填', trigger: 'change' }],
+}
+
+function beforeCover(file: File): boolean {
+  if (!(IMAGE_TYPES as readonly string[]).includes(file.type)) {
+    ElMessage.error('封面仅支持 jpg、png、gif、webp 格式')
+    return false
+  }
+  if (file.size > IMAGE_MAX_SIZE) {
+    ElMessage.error(`封面大小不能超过 ${IMAGE_MAX_SIZE_LABEL}`)
+    return false
+  }
+  return true
+}
+
+async function uploadCover(options: UploadRequestOptions) {
+  coverUploading.value = true
+  try {
+    const data = new FormData()
+    data.append('file', options.file)
+    const urls = await Http<string[]>({ type: 'uploadArticle', data })
+    const url = Array.isArray(urls) ? urls[0] : ''
+    if (!url) {
+      ElMessage.error('封面图上传失败')
+      return
+    }
+    form.cover = url
+    ElMessage.success('封面已上传')
+  } catch {
+    // 错误已由 Http 弹出提示
+  } finally {
+    coverUploading.value = false
+  }
 }
 
 async function loadColumns() {
@@ -66,6 +106,7 @@ async function loadArticle() {
       form.title = item.title
       form.column = item.column?._id ?? ''
       form.content = item.content
+      form.cover = item.cover ?? ''
     }
   } catch {
     editNotFound.value = true
@@ -87,6 +128,7 @@ function submit() {
             id: articleId.value,
             title: form.title.trim(),
             content: encodeURIComponent(form.content),
+            cover: form.cover,
           },
         })
         ElMessage.success('修改成功')
@@ -98,6 +140,7 @@ function submit() {
             title: form.title.trim(),
             content: encodeURIComponent(form.content),
             column: form.column,
+            cover: form.cover || undefined,
           },
         })
         ElMessage.success('发布成功')
@@ -165,6 +208,41 @@ watch(articleId, () => void loadArticle())
             />
           </el-select>
         </el-form-item>
+        <el-form-item label="封面图（可选）">
+          <div class="cover-field">
+            <div v-if="form.cover" class="cover-preview">
+              <img :src="form.cover" alt="封面预览" />
+              <div class="cover-actions">
+                <el-upload
+                  :accept="IMAGE_ACCEPT"
+                  :show-file-list="false"
+                  :before-upload="beforeCover"
+                  :http-request="uploadCover"
+                  :disabled="coverUploading"
+                >
+                  <el-button class="action" :loading="coverUploading">更换封面</el-button>
+                </el-upload>
+                <el-button class="action" @click="form.cover = ''">移除</el-button>
+              </div>
+            </div>
+            <el-upload
+              v-else
+              :accept="IMAGE_ACCEPT"
+              :show-file-list="false"
+              :before-upload="beforeCover"
+              :http-request="uploadCover"
+              :disabled="coverUploading"
+            >
+              <button type="button" class="cover-upload" :disabled="coverUploading">
+                <el-icon :size="22"><Plus /></el-icon>
+                <span>{{ coverUploading ? '上传中…' : '上传封面图' }}</span>
+                <span class="cover-hint">
+                  支持 jpg/png/gif/webp，不超过 {{ IMAGE_MAX_SIZE_LABEL }}
+                </span>
+              </button>
+            </el-upload>
+          </div>
+        </el-form-item>
         <el-form-item label="正文（支持 Markdown）" prop="content">
           <MarkdownEditor v-model="form.content" height="480px" />
         </el-form-item>
@@ -191,7 +269,72 @@ watch(articleId, () => void loadArticle())
   width: 100%;
 }
 
+.cover-field {
+  width: 100%;
+}
+
+.cover-preview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.cover-preview img {
+  width: 240px;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--el-border-color);
+  border-radius: 8px;
+  background: var(--el-fill-color);
+  object-fit: cover;
+}
+
+.cover-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.cover-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 240px;
+  aspect-ratio: 16 / 9;
+  border: 1px dashed var(--el-border-color);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--el-text-color-secondary);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition:
+    color 0.2s,
+    border-color 0.2s,
+    background-color 0.2s;
+}
+
+.cover-upload:hover {
+  border-color: var(--el-color-primary);
+  background: var(--app-gold-soft);
+  color: var(--el-color-primary-light-3);
+}
+
+.cover-hint {
+  color: var(--el-text-color-placeholder);
+  font-size: 12px;
+}
+
+.action,
 .submit {
   min-height: 44px;
+}
+
+@media (max-width: 600px) {
+  .cover-preview img,
+  .cover-upload {
+    width: 100%;
+  }
 }
 </style>

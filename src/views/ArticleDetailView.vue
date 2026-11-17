@@ -194,6 +194,8 @@ watch(() => route.params.id, load)
         <span>点赞 {{ article.like_num }}</span>
       </div>
 
+      <img v-if="article.cover" :src="article.cover" alt="" class="detail-cover" />
+
       <!-- Markdown 经 v-md-editor 预览渲染，内置 xss 过滤 -->
       <div class="content">
         <MarkdownPreview :text="article.content" />
@@ -275,6 +277,16 @@ watch(() => route.params.id, load)
   font-size: 13px;
   color: var(--el-text-color-secondary);
   margin-bottom: 20px;
+}
+
+.detail-cover {
+  display: block;
+  width: 100%;
+  max-height: 360px;
+  margin: 0 0 20px;
+  border-radius: 12px;
+  background: var(--el-fill-color);
+  object-fit: cover;
 }
 
 .content {

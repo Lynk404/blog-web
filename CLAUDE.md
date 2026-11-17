@@ -32,7 +32,7 @@ npm run format       # prettier --write --experimental-cli src/
 - 已完成：布局与路由、只读浏览、登录注册、自动登录、头像菜单、个人主页（独立页面）、退出二次确认、登录注册卡片与居中、深色主题、三栏首页（左栏专栏、中栏公告轮播与帖子列表、右栏 Yes排行榜）、搜索蒙版页、全屏写帖子页、消息铃铛 UI（本地占位，接口预留），以及写入功能（评论、点赞、发布帖子、新建专栏、编辑资料、头像、改密码、注销），编辑与删除（帖子、评论、专栏，含级联提示），Markdown 编辑与预览（v-md-editor），路由顶部进度条（nprogress）。类型检查与构建通过。
 - **接口层已验证**（后端在线）：只读接口与未登录 401 已验证；写接口、编辑与删除接口（含级联）均已用临时账号联调通过，测试脚本在项目外、未入库。
 - **部分浏览器验证**（2026-11-16）：用 headless Chrome 实测首页三栏与移动端布局（公告轮播、Yes排行榜、帖子列表面板）、搜索蒙版与结果、专栏页发布按钮、全屏写帖子页及专栏预选；后续补测登录后从左侧新建专栏、全部专栏列表刷新、未登录新建跳转登录、专栏详情选中高亮及移动端布局，以及选中态与悬停态的样式区分。注册流程可用，临时账号已注销。其余流程（自动登录、头像菜单、个人主页、评论增删改、帖子编辑/删除、进度条）仍未做浏览器端到端测试，按 `docs/integration/manual-checklist.md` 检查。
-- 已实现页面：首页（三栏：左栏专栏、中栏公告轮播与帖子列表、右栏 Yes排行榜；无搜索栏和写帖子入口）、搜索（`/search` 蒙版覆盖首页，嵌套路由）、发布帖子与编辑帖子（全屏独立布局，登录，`article-create` 与 `article-edit` 复用同一组件，仅本人专栏可发布）、帖子详情（Markdown 正文、评论增删改、点赞、发表评论，作者可编辑或删除帖子）、专栏列表（登录后新建专栏；本人专栏显示“发布帖子”）、专栏详情（作者可改名、删除）、个人主页（资料、头像、编辑资料、改密码、注销）、登录、注册、404。
+- 已实现页面：首页（三栏：左栏专栏、中栏公告轮播与帖子列表、右栏 Yes排行榜；无搜索栏和写帖子入口）、搜索（`/search` 蒙版覆盖首页，嵌套路由）、发布帖子与编辑帖子（全屏独立布局，登录，`article-create` 与 `article-edit` 复用同一组件，仅本人专栏可发布；封面图可上传、更换、移除）、帖子详情（封面图、Markdown 正文、评论增删改、点赞、发表评论，作者可编辑或删除帖子）、专栏列表（登录后新建专栏；本人专栏显示“发布帖子”）、专栏详情（作者可改名、删除）、个人主页（资料、头像、编辑资料、改密码、注销）、登录、注册、404。
 - `src/plugins/` 为空目录。
 - `src/style.css` 为模板遗留文件，全项目未引用，待清理（删除前需确认）。
 - 服务端契约文档 `docs/integration/frontend-handoff.md` 是接口的权威来源。`docs/api/` 为后端侧参考，与 `../blog-server/docs/api/` 同名同内容（总览为 `api.md`），修改时两边同步；`docs/api` 沿用“文章”指代帖子，与后端模型和字段一致。
@@ -121,6 +121,7 @@ npm run format       # prettier --write --experimental-cli src/
 - 写帖子/编辑帖子在 `AuthLayout` 下全屏显示，页面主体限宽 960px；`/articles/new?column=<id>` 会在本人专栏中预选该专栏，编辑模式忽略该参数。
 - “全部专栏”页在左侧栏末尾提供“新建专栏”。专栏详情页的“发布帖子”“修改专栏名”“删除专栏”只对本人专栏显示；他人专栏不显示发布按钮。后端仍禁止发布到他人专栏（见接口行为注意）。
 - 帖子正文为 **Markdown**，由 `src/components/MarkdownPreview.vue`（v-md-editor 预览）渲染。预览内置 xss 过滤，**不得关闭**。编辑器为 `src/components/MarkdownEditor.vue`。两者均为懒加载，只在需要的页面加载。若新增渲染入口，必须经过同一预览组件或同等净化，不得直接 `v-html`。
+- 帖子封面在发布/编辑页通过 `POST /upload/article` 上传，返回 `string[]`，取第一个 URL 写入 `cover`；头像与封面共用 `src/config/upload.config.ts` 的 2 MB 限制和格式白名单。首页、搜索结果的帖子卡片与专栏详情列表均为“封面左置、内容右置”，详情页标题下方展示封面。
 - v-md-editor 的 github 主题实际容器类名是 `github-markdown-body`（不是 `markdown-body`）；`main.css` 的深色覆盖必须同时覆盖两个类名，尤其要覆盖表格 `tr` 与 `tr:nth-child(2n)` 的白色/浅灰背景，否则正文表格会显示为白底。
 - **编辑器内核由调用方注入**：v-md-editor 2.x 不内置 CodeMirror，`MarkdownEditor.vue` 通过组件选项 `Codemirror` 注入 `codemirror`（5.x，已作为直接依赖）。未注入时编辑器内部报 `reading 'doc'` 错误。库默认 `scrollbarStyle: 'overlay'` 需额外插件，这里改为 `native`。
 - v-md-editor 的子路径入口（`/lib/codemirror-editor`、`/lib/preview`、`/lib/theme/github.js`）与 `codemirror` 的最小类型声明在 `src/types/md-editor.d.ts`，修改编辑器导入方式时需同步维护。
@@ -146,10 +147,10 @@ npm run format       # prettier --write --experimental-cli src/
 
 - 样式集中在 `src/assets/main.css`，使用 `html:root` 覆盖 Element Plus 的 `--el-*` 变量（优先级高于库自带的 `:root` 定义，避免加载顺序影响覆盖）。
 - 配色：近黑底 + 金色主强调 + 紫色次强调。背景 `#090909`，卡片/面板 `#1d1d1d`，悬停背景 `#252525`，浮层 `#242424`，边框 `#2f2f35`，主文字 `#f4f4f5`，常规文字 `#d4d4d8`，辅助文字 `#9a9aa3`；金色 `#d4a63a`。左栏标题渐变 `#575659 → #3a2f45`，帖子列表面板标题渐变 `#362a42 → #382812`，Yes排行榜使用 `#5b4522` 纯色标题栏与同色边框。主按钮为金底深色文字。紫色、金色软背景、排行榜银/铜等使用 `main.css` 的 `--app-*` 变量。页面中禁止硬编码颜色，统一使用 `var(--el-*)` 或 `var(--app-*)`。
-- 首页栏目头（专栏、帖子列表）使用渐变，Yes排行榜使用 `#c4a763` 纯色；标题前使用 Element Plus 图标（专栏 `Collection`、帖子列表 `Document`、排行榜 `Trophy`），普通标题图标为金色，排行榜标题与图标为深色；标题字号 17px，左栏列表项高度 52px、排行榜 56px，内容字号 15px，辅助信息 13px。排行榜排名前三分别为金、银、铜；搜索框为胶囊形，悬停/聚焦金色边框；消息铃铛背景与搜索框一致（`--app-surface` + 边框），头像悬停金色描边；顶栏高度 72px（移动端 64px）。
+- 首页栏目头（专栏、帖子列表）使用渐变，Yes排行榜使用 `#5b4522` 纯色；标题前使用 Element Plus 图标（专栏 `Collection`、帖子列表 `Document`、排行榜 `Trophy`），普通标题图标为金色，排行榜标题与图标为深色；标题字号 17px，左栏列表项高度 52px、排行榜 56px，内容字号 15px，辅助信息 13px。排行榜排名前三分别为金、银、铜；搜索框为胶囊形，悬停/聚焦金色边框；消息铃铛背景与搜索框一致（`--app-surface` + 边框），头像悬停金色描边；顶栏高度 72px（移动端 64px）。
 - 首页公告轮播使用深紫 `--app-purple-gradient`、深棕 `--app-hot-gradient` 与 `--app-announce-gradient`，指示点激活态为金色；`prefers-reduced-motion` 时关闭自动播放。
 - 顶栏使用 `position: sticky` 吸顶，半透明背景 + `backdrop-filter: blur`，底边有模糊光晕和缓慢横向扫光（呼应 Logo）；`prefers-reduced-motion` 时底边恢复静态边框。下拉菜单悬停色由 `main.css` 覆盖 `--el-dropdown-menuItem-hover-fill`（`--app-gold-soft`）与 `--el-dropdown-menuItem-hover-color`（`--el-color-primary-light-3`），避免默认 `primary-light-9` 的近白底导致金字看不清。
-- 首页帖子卡片悬停时 `translateY(-2px) scale(1.015)`，搜索弹窗结果卡片同步；`prefers-reduced-motion: reduce` 时取消位移与缩放。
+- 首页帖子卡片、搜索弹窗结果卡片与专栏详情帖子行悬停时 `translateY(-2px) scale(1.015)`，边框变金、背景提亮；`prefers-reduced-motion: reduce` 时取消位移与缩放。
 - Logo 文案为 `Yes论坛`，字号 24px（移动端 20px），主色 `#405a6f`，使用 `--app-logo-*` 变量；文字有渐变扫光、背后有蓝色呼吸光晕，`prefers-reduced-motion` 时关闭动画。`AppBrand` 与首页“全部专栏”链接不使用下划线。
 - 字体：系统无衬线字体栈。衬线字体方案已确认**暂不采用**，以后再说。
 - 可访问性：键盘焦点使用 `:focus-visible` 的可见轮廓；交互控件最小点击区域 44px（头像触发器、认证按钮）；尊重 `prefers-reduced-motion`。
@@ -162,7 +163,7 @@ npm run format       # prettier --write --experimental-cli src/
 - `GET /api/rest/articles/:id` 每次调用阅读数 +1，不要放在渲染或 watch 循环中调用。
 - 删除专栏会级联删除他人帖子与评论；注销账号同样级联。UI 中必须先弹出确认。
 - 分页 `size` 上限为 100，首页使用 10。
-- 头像上传要求 `uid` 等于当前用户 id，返回的 URL 需再通过 `PUT /user` 写入。限制：100 KB，仅 jpg/jpeg/png/gif/webp。
+- 头像上传要求 `uid` 等于当前用户 id，返回的 URL 需再通过 `PUT /user` 写入。头像与帖子图片共用后端 `config.maxFileSize`（2 MB），仅 jpg/jpeg/png/gif/webp。帖子封面走 `POST /upload/article`，返回 `{ errno: 0, data: [url] }`，`Http` 解包后为 `string[]`。
 - `content` 发送前需 `encodeURIComponent`（仅帖子；服务端对帖子做 `decodeURIComponent`，评论不做此处理）。
 - `PUT /user` 可改字段为 `nikname`、`email`、`avatar`、`password`，**不含 `signature`**，个人主页不提供签名编辑。
 - 改密码后旧 token 失效存在同秒窗口：签发与改密码在同一秒内的旧 token 仍可能有效（后端 `iat` 精度为秒）。前端改密码成功后立即清除本地登录态。
@@ -187,7 +188,7 @@ npm run format       # prettier --write --experimental-cli src/
   - **首页中栏懒加载**：当前一次性请求当前页 10 条；后续改为滚动或分页懒加载（用户要求先记录，暂不实现）。
   - 专栏列表只取前 100 条，发布页与编辑页的专栏下拉受此限制，需要分页或搜索。
   - 帖子评论全部内嵌在详情接口中，无分页；评论多时需要后端或前端方案。
-- **帖子封面与图片**：`cover` 字段与 `POST /upload/article` 后端已支持，前端未做。编辑器中的图片目前只能使用外部地址的 Markdown 语法。
+- **帖子图片**：封面已支持上传（2 MB，jpg/png/gif/webp）；编辑器正文中的图片目前只能使用外部地址的 Markdown 语法。
 - **消息中心**：后端接口未实现；`MessageBell.vue` 已用本地占位数据完成下拉列表与内容蒙版，接入后替换数据源。
 - **在他人专栏发帖**：当前后端禁止（403）。如需支持，需要修改 `blog-server/routes/bus.js` 的归属校验，并接受级联删除风险。
 - **未决定事项**：环境变量说明、部署方案、衬线字体（已确认暂缓）。

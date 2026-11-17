@@ -83,13 +83,21 @@ onMounted(() => {
               shadow="hover"
               @click="openArticle(item._id)"
             >
-              <div class="title">{{ item.title }}</div>
-              <div class="meta">
-                <span v-if="item.column">{{ item.column.name }}</span>
-                <span v-if="item.author">{{ item.author.nikname }}</span>
-                <span>阅读 {{ item.hit_num }}</span>
-                <span>评论 {{ item.comment_num }}</span>
-                <span>点赞 {{ item.like_num }}</span>
+              <div class="item-body">
+                <img v-if="item.cover" :src="item.cover" alt="" class="item-cover" loading="lazy" />
+                <span v-else class="item-cover item-cover-empty">
+                  <el-icon :size="26" aria-hidden="true"><Document /></el-icon>
+                </span>
+                <div class="item-main">
+                  <div class="title">{{ item.title }}</div>
+                  <div class="meta">
+                    <span v-if="item.column">{{ item.column.name }}</span>
+                    <span v-if="item.author">{{ item.author.nikname }}</span>
+                    <span>阅读 {{ item.hit_num }}</span>
+                    <span>评论 {{ item.comment_num }}</span>
+                    <span>点赞 {{ item.like_num }}</span>
+                  </div>
+                </div>
               </div>
             </el-card>
 
@@ -262,6 +270,33 @@ onMounted(() => {
   color: var(--el-color-primary-light-3);
 }
 
+.item-body {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.item-cover {
+  flex-shrink: 0;
+  width: 160px;
+  height: 96px;
+  border-radius: 8px;
+  background: var(--el-fill-color);
+  object-fit: cover;
+}
+
+.item-cover-empty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--el-text-color-secondary);
+}
+
+.item-main {
+  flex: 1;
+  min-width: 0;
+}
+
 .title {
   margin-bottom: 8px;
   color: var(--el-text-color-primary);
@@ -300,6 +335,26 @@ onMounted(() => {
 
   .center-column {
     gap: 16px;
+  }
+
+  .item-cover {
+    width: 140px;
+    height: 84px;
+  }
+}
+
+@media (max-width: 600px) {
+  .item-body {
+    gap: 12px;
+  }
+
+  .item-cover {
+    width: 112px;
+    height: 72px;
+  }
+
+  .title {
+    font-size: 15px;
   }
 }
 

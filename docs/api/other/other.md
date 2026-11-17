@@ -91,5 +91,5 @@
 // classify=article（富文本编辑器格式）：{ "errno": 0, "data": ["http://127.0.0.1:3000/article/<filename>"] }
 ```
 **错误**
-- 文件超过限制：`422`，`文件大小不得超过 102400 bytes`
+- 文件超过限制：`422`，`文件大小不得超过 2097152 bytes`
 > 上传成功后文件位于 `uploads/user/` 或 `uploads/article/`，通过 `http://127.0.0.1:3000/user/<filename>` 或 `http://127.0.0.1:3000/article/<filename>` 访问。

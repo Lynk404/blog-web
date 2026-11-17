@@ -140,7 +140,7 @@ const cipher = btoa(String.fromCharCode(...new Uint8Array(buf)))  // 2048 位密
 | POST `/upload/article` | 帖子图片 | `file` | `{ errno: 0, data: [url] }` |
 
 - 只允许 `.jpg`、`.jpeg`、`.png`、`.gif`、`.webp`，其他返回 `422`。
-- 单文件最大 100 KB（102400 字节），超出返回 `422`。
+- 单文件最大 2 MB（2097152 字节），超出返回 `422`。
 - 头像上传的 `uid` 必须是当前登录用户的 id，否则被拒绝，不会留下文件。
 - 头像上传后，还需调用 `PUT /user` 把 `fileURL` 写入 `avatar`。
 - 上传返回的地址是 `http://127.0.0.1:3000/...`，只在本地可访问。

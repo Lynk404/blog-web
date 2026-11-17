@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { Document } from '@element-plus/icons-vue'
 import Http from '../api'
 import type { ArticleBrief, Pagination } from '../types/api'
 
@@ -108,11 +109,19 @@ onMounted(() => {
         shadow="hover"
         @click="openArticle(item._id)"
       >
-        <div class="title">{{ item.title }}</div>
-        <div class="meta">
-          <span v-if="item.column">{{ item.column.name }}</span>
-          <span v-if="item.author">{{ item.author.nikname }}</span>
-          <span>阅读 {{ item.hit_num }}</span>
+        <div class="item-body">
+          <img v-if="item.cover" :src="item.cover" alt="" class="item-cover" loading="lazy" />
+          <span v-else class="item-cover item-cover-empty">
+            <el-icon :size="24" aria-hidden="true"><Document /></el-icon>
+          </span>
+          <div class="item-main">
+            <div class="title">{{ item.title }}</div>
+            <div class="meta">
+              <span v-if="item.column">{{ item.column.name }}</span>
+              <span v-if="item.author">{{ item.author.nikname }}</span>
+              <span>阅读 {{ item.hit_num }}</span>
+            </div>
+          </div>
         </div>
       </el-card>
 
@@ -153,6 +162,33 @@ onMounted(() => {
   transform: translateY(-2px) scale(1.015);
 }
 
+.item-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.item-cover {
+  flex-shrink: 0;
+  width: 120px;
+  height: 80px;
+  border-radius: 8px;
+  background: var(--el-fill-color);
+  object-fit: cover;
+}
+
+.item-cover-empty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--el-text-color-secondary);
+}
+
+.item-main {
+  flex: 1;
+  min-width: 0;
+}
+
 .title {
   font-size: 15px;
   font-weight: 600;
@@ -170,6 +206,17 @@ onMounted(() => {
 .pager {
   margin-top: 16px;
   justify-content: center;
+}
+
+@media (max-width: 600px) {
+  .item-body {
+    gap: 10px;
+  }
+
+  .item-cover {
+    width: 96px;
+    height: 64px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
