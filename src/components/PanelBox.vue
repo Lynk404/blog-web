@@ -5,7 +5,7 @@ withDefaults(
   defineProps<{
     title: string
     icon?: Component
-    variant?: 'purple' | 'hot' | 'rank'
+    variant?: 'purple' | 'hot' | 'rank' | 'plain'
   }>(),
   { variant: 'purple' },
 )
@@ -53,6 +53,21 @@ withDefaults(
 
 .app-panel.is-rank .app-panel-head {
   background: var(--app-rank-color);
+}
+
+/* 中性面板：不加渐变，用于帖子详情右栏与评论区 */
+.app-panel.is-plain .app-panel-head {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--el-border-color-lighter);
+}
+
+.app-panel.is-plain .app-panel-title {
+  color: var(--el-text-color-primary);
+  font-size: 15px;
+}
+
+.app-panel.is-plain .app-panel-body {
+  padding: 16px;
 }
 
 .app-panel-head {

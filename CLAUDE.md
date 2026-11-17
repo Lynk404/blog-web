@@ -29,10 +29,11 @@ npm run format       # prettier --write --experimental-cli src/
 ## 代码库现状
 
 - 技术栈：Vue 3 + TypeScript（`<script setup lang="ts">`）+ Vite 8 + Pinia + Vue Router + Element Plus（按需导入）。
-- 已完成：布局与路由、只读浏览、登录注册、自动登录、头像菜单、个人主页（独立页面）、退出二次确认、登录注册卡片与居中、深色主题、三栏首页（左栏专栏、中栏公告轮播与帖子列表、右栏 Yes排行榜）、搜索蒙版页、全屏写帖子页、消息铃铛 UI（本地占位，接口预留），以及写入功能（评论、点赞、发布帖子、新建专栏、编辑资料、头像、改密码、注销），编辑与删除（帖子、评论、专栏，含级联提示），Markdown 编辑与预览（v-md-editor），路由顶部进度条（nprogress）。类型检查与构建通过。
+- 已完成：布局与路由、只读浏览、登录注册、自动登录、头像菜单、个人主页（独立页面）、退出二次确认、登录注册卡片与居中、深色主题、三栏首页（左栏专栏、中栏公告轮播与帖子列表、右栏 Yes排行榜）、搜索蒙版页、全屏写帖子页、消息铃铛 UI（本地占位，接口预留）、帖子详情两栏改版（左内容与评论、右侧栏）与公开用户页 `/users/:id`，以及写入功能（评论、点赞、发布帖子、新建专栏、编辑资料、头像、改密码、注销），编辑与删除（帖子、评论、专栏，含级联提示），Markdown 编辑与预览（v-md-editor），路由顶部进度条（nprogress）。类型检查与构建通过。
 - **接口层已验证**（后端在线）：只读接口与未登录 401 已验证；写接口、编辑与删除接口（含级联）均已用临时账号联调通过，测试脚本在项目外、未入库。
 - **部分浏览器验证**（2026-11-16）：用 headless Chrome 实测首页三栏与移动端布局（公告轮播、Yes排行榜、帖子列表面板）、搜索蒙版与结果、专栏页发布按钮、全屏写帖子页及专栏预选；后续补测登录后从左侧新建专栏、全部专栏列表刷新、未登录新建跳转登录、专栏详情选中高亮及移动端布局，以及选中态与悬停态的样式区分。注册流程可用，临时账号已注销。其余流程（自动登录、头像菜单、个人主页、评论增删改、帖子编辑/删除、进度条）仍未做浏览器端到端测试，按 `docs/integration/manual-checklist.md` 检查。
-- 已实现页面：首页（三栏：左栏专栏、中栏公告轮播与帖子列表、右栏 Yes排行榜；无搜索栏和写帖子入口）、搜索（`/search` 蒙版覆盖首页，嵌套路由）、发布帖子与编辑帖子（全屏独立布局，登录，`article-create` 与 `article-edit` 复用同一组件，仅本人专栏可发布；封面图可上传、更换、移除）、帖子详情（封面图、Markdown 正文、评论增删改、点赞、发表评论，作者可编辑或删除帖子）、专栏列表（登录后新建专栏；本人专栏显示“发布帖子”）、专栏详情（作者可改名、删除）、个人主页（资料、头像、编辑资料、改密码、注销）、登录、注册、404。
+- **详情页与用户页验证**（2026-11-17）：headless Chrome 实测帖子详情两栏（1440px 下 1032 + 344px）、右栏三块与两条入口、作者入口跳转 `/users/:id`、用户页每页 10 条与分页切换、390px 单列且无横向滚动。
+- 已实现页面：首页（三栏：左栏专栏、中栏公告轮播与帖子列表、右栏 Yes排行榜；无搜索栏和写帖子入口）、搜索（`/search` 蒙版覆盖首页，嵌套路由）、发布帖子与编辑帖子（全屏独立布局，登录，`article-create` 与 `article-edit` 复用同一组件，仅本人专栏可发布；封面图可上传、更换、移除）、帖子详情（两栏：左侧标题、作者行、封面、Markdown 正文、点赞与评论区，右侧发帖人/所属专栏/帖子信息；作者可编辑或删除帖子）、用户主页（`/users/:id` 公开页：资料卡 + 该用户帖子列表与分页）、专栏列表（登录后新建专栏；本人专栏显示“发布帖子”）、专栏详情（作者可改名、删除）、个人主页（资料、头像、编辑资料、改密码、注销）、登录、注册、404。
 - `src/plugins/` 为空目录。
 - `src/style.css` 为模板遗留文件，全项目未引用，待清理（删除前需确认）。
 - 服务端契约文档 `docs/integration/frontend-handoff.md` 是接口的权威来源。`docs/api/` 为后端侧参考，与 `../blog-server/docs/api/` 同名同内容（总览为 `api.md`），修改时两边同步；`docs/api` 沿用“文章”指代帖子，与后端模型和字段一致。
@@ -58,7 +59,7 @@ npm run format       # prettier --write --experimental-cli src/
 ### 路由与布局
 
 - `src/router/index.ts` 有两组布局：
-  - **主站** `AppLayout`（`src/layouts/AppLayout.vue`，顶部仅 logo + 搜索框 + 消息铃铛 + 头像菜单，无首页/专栏菜单）：`home`（`meta.wide: true`，三栏）、其子路由 `search`（搜索蒙版）、`article-detail`、`columns`、`column-detail`（`columns` 与 `column-detail` 也使用 `meta.wide`）。
+  - **主站** `AppLayout`（`src/layouts/AppLayout.vue`，顶部仅 logo + 搜索框 + 消息铃铛 + 头像菜单，无首页/专栏菜单）：`home`（`meta.wide: true`，三栏）、其子路由 `search`（搜索蒙版）、`article-detail`（`meta.wide: true`）、`user-profile`（`/users/:id`，公开用户页）、`columns`、`column-detail`（`columns` 与 `column-detail` 也使用 `meta.wide`）。
   - **独立页面** `AuthLayout`（`src/layouts/AuthLayout.vue`，无导航栏，仅左上角 logo `src/components/AppBrand.vue` 返回首页）：`login`、`register`（`guestOnly`，路由 meta `centered: true`，内容上下左右居中），以及 `profile`、`article-create`、`article-edit`（均 `requiresAuth`，顶部对齐；写帖子与编辑页为全屏布局）。
 - `search` 作为 `home` 的子路由，使 `HomeView` 在打开搜索时保持挂载，弹窗以蒙版覆盖主页；`HomeView` 内必须保留 `<RouterView />` 出口。
 - `AppLayout` 的 `el-main` 根据 `route.meta.wide` 放宽到 1600px；其他主站页面保持 960px。首页网格为 `260px minmax(0, 1fr) 260px`，栏间距 40px，左右等宽使中栏居中；中栏是独立纵向容器（公告轮播 → 帖子列表面板），右栏为 Yes排行榜，左栏与中栏顶部对齐，高度各自随内容，不拉伸。`≤1280px` 隐藏右栏变两栏，`≤820px` 变单栏。
@@ -68,7 +69,7 @@ npm run format       # prettier --write --experimental-cli src/
 ### 专栏页面与共享面板
 
 - `src/components/ColumnSidebar.vue`：左侧专栏列表，首页、全部专栏页、专栏详情页共用。`showCreate` 控制列表末尾的“＋ 新建专栏”虚线项，只有专栏页传 `true`；未登录点击会提示并跳转登录页。新建成功后派发 `created` 事件。专栏详情页按 `route.params.id` 给对应项加 `is-active`（3px 金色左边线、金色渐变底、金色字重 600、`aria-current="page"`），且强于悬停的浅金底；首页与全部专栏页不高亮任何项。
-- `src/components/PanelBox.vue`：统一渐变标题栏 + 深色内容面板，`variant` 支持 `purple`（左栏）、`hot`（帖子列表、全部专栏、专栏帖子列表）与 `rank`（Yes排行榜，`#5b4522` 纯色标题栏 + 同色边框）；共享侧栏、首页、专栏页均使用它。面板使用 `--app-panel-shadow: 0 0 40px 1px #484848` 营造四周柔和的悬浮效果。
+- `src/components/PanelBox.vue`：统一渐变标题栏 + 深色内容面板，`variant` 支持 `purple`（左栏）、`hot`（帖子列表、全部专栏、专栏帖子列表）、`rank`（Yes排行榜，`#5b4522` 纯色标题栏 + 同色边框）与 `plain`（无渐变、底部分隔线、15px 标题、16px 内边距，用于帖子详情右栏与评论区）；共享侧栏、首页、专栏页均使用它。面板使用 `--app-panel-shadow: 0 0 40px 1px #484848` 营造四周柔和的悬浮效果。
 - `src/components/HomeCarousel.vue`：首页公告轮播，3 条本地占位公告，使用 `el-carousel`；桌面 320px、平板 240px、手机 200px，手机隐藏装饰图；`prefers-reduced-motion` 下关闭自动播放。后端公告接口接入后替换 `slides` 数组。
 - `/columns` 全部专栏页与 `/columns/:id` 专栏详情页都是「左侧 `ColumnSidebar` + 右侧合并主区」的网格布局（`260px + 1fr`，间距 40px）。
 - 专栏详情页顶部为专栏头（图标占位、专栏名、帖子数、本人操作）；下方为 `PanelBox` 帖子列表，行内展示封面缩略图、标题、阅读/评论/点赞、日期。专栏详情接口的 `aids[].author` 是用户 id 字符串而非 populate 后的对象，因此列表不显示作者；接口也不返回摘要，因此不显示摘要文字。
@@ -76,6 +77,14 @@ npm run format       # prettier --write --experimental-cli src/
 - `router.beforeEach`：`requiresAuth` 未登录 → 登录页（携带 `redirect`）；`guestOnly` 已登录 → 首页。
 - 顶部进度条：`beforeEach` 调用 `NProgress.start()`，`afterEach` 与 `onError` 调用 `NProgress.done()`。进度条样式在 `main.css`。
 - 登录后跳转 `redirect`，由 `src/utils/redirect.ts` 的 `safeRedirect` 校验：仅接受以 `/` 开头且非 `//` 的站内路径。
+
+### 帖子详情与用户页
+
+- 帖子详情 `ArticleDetailView.vue` 为两栏网格：`grid-template-columns: minmax(0, 5fr) minmax(280px, 2fr)`，间距 40px；`grid-template-areas` 为 `'main side' / 'comments side'`，内容卡片、右侧栏与评论区分别落在 `main`、`side`、`comments`。右栏 `position: sticky; top: 92px`（顶部导航 72px + 间距）；`≤960px` 单列，顺序为 内容 → 右栏 → 评论。
+- 右侧三块：发帖人（头像、昵称、“楼主”标签、进入用户页）、所属专栏（进入专栏详情）、帖子信息（发布时间、阅读、点赞、评论）。后端帖子只有 `date` 一个时间字段且编辑会覆写，因此不显示“更新时间”。
+- 内容卡片底部为统计（点赞、评论）与操作（点赞；作者额外显示编辑、删除）。评论区为独立 `PanelBox`，输入框在顶部，列表项含头像、昵称、时间、正文与本人编辑/删除按钮。
+- 公开用户页 `UserProfileView.vue`：`GET /api/rest/users/:id` 取 `nikname`、`avatar`、`signature`；`GET /api/rest/articles?query[author]=<uid>&page=N&size=10` 取该用户的帖子与 `total`。页面为 960px 单列：资料卡 + “TA 的帖子”列表与分页；本人显示“编辑资料”进入 `/me`。获赞总数没有对应接口，不展示。
+- 入口：帖子详情内容卡作者昵称、右栏「查看 TA 的主页」均指向 `user-profile`。评论者昵称暂不链接。
 
 ### 登录态与自动登录
 
@@ -177,6 +186,7 @@ npm run format       # prettier --write --experimental-cli src/
 - 改密码后旧 token 失效存在同秒窗口：签发与改密码在同一秒内的旧 token 仍可能有效（后端 `iat` 精度为秒）。前端改密码成功后立即清除本地登录态。
 - 点赞接口后端不做去重，前端仅在帖子详情页内限制成功点赞一次（刷新页面后可再次点击）。该决定已确认保留。
 - 帖子编辑（`PUT /api/rest/articles/:id`）只允许修改 `title`、`content`，所属专栏不可改，编辑页的专栏选择为只读。编辑页取数使用列表接口 `GET /api/rest/articles?query[_id]=<id>`，**不使用单条接口**（单条接口会增加阅读数）。
+- 公开用户接口 `GET /api/rest/users/:id` 只返回 `_id`、`nikname`、`avatar`、`signature`，不返回邮箱与统计；按作者取帖子用 `GET /api/rest/articles?query[author]=<uid>`。`Http` 的 GET `data` 中键名直接写 `'query[author]'`，axios 会保留方括号。
 - 服务端对帖子 `content` 的 setter 会把 `"` 替换为 `'`，Markdown 正文中的双引号会变成单引号（后端既有行为）。
 - 评论的编辑与删除仅作者可见入口（`PUT`、`DELETE /api/rest/comments/:id`，后端 403 或 400 校验）。
 - 发布帖子只能选本人专栏（列表按 `uid` 筛选，取前 100 条）；他人专栏返回 403。后端 `blog-server/routes/bus.js` 会校验 `req._id === column.uid`，因此前端只在本人专栏显示“发布帖子”。若要让所有人在任意专栏发帖，必须修改后端，并接受专栏删除/作者注销时级联删除他人帖子的风险。
@@ -189,9 +199,7 @@ npm run format       # prettier --write --experimental-cli src/
 
 ## 待实现功能
 
-- **个人与他人页面**：
-  - "我的帖子"列表：`GET /api/rest/articles?query[author]=<uid>` 已验证可用（返回 23 篇）。
-  - 用户公开页 `/users/:id`：`GET /api/rest/users/:id` 已验证可用（仅返回 `nikname`、`avatar`、`signature`），帖子作者名可点击进入。
+- **用户页统计**：公开用户页只展示帖子数与帖子列表；获赞总数需要按作者聚合的接口，暂未提供。评论者昵称尚未链接到用户页。
 - **列表与数据量**：
   - **首页中栏懒加载**：当前一次性请求当前页 10 条；后续改为滚动或分页懒加载（用户要求先记录，暂不实现）。
   - 专栏列表只取前 100 条，发布页与编辑页的专栏下拉受此限制，需要分页或搜索。

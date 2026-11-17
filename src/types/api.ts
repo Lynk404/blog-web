@@ -21,6 +21,14 @@ export interface ColumnBrief {
   name: string
 }
 
+/** 公开用户信息（GET /api/rest/users/:id，后端只返回这些字段） */
+export interface PublicUser {
+  _id: string
+  nikname: string
+  avatar?: string
+  signature?: string
+}
+
 /** 文章列表项（populate: author、column） */
 export interface ArticleBrief {
   _id: string

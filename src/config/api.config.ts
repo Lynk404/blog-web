@@ -25,6 +25,7 @@ const API_LIST = {
   pubKey: { url: '/keys', method: 'GET' },
   articles: { url: '/api/rest/articles', method: 'GET' },
   columns: { url: '/api/rest/columns', method: 'GET' },
+  getUserById: { url: '/api/rest/users/:id', method: 'GET', rest: true },
   postColumn: { url: '/api/rest/columns', method: 'POST' },
   postComment: { url: '/api/rest/comments', method: 'POST' },
   postArticle: { url: '/api/rest/articles', method: 'POST' },

@@ -47,6 +47,12 @@ const router = createRouter({
           path: 'articles/:id',
           name: 'article-detail',
           component: () => import('../views/ArticleDetailView.vue'),
+          meta: { wide: true },
+        },
+        {
+          path: 'users/:id',
+          name: 'user-profile',
+          component: () => import('../views/UserProfileView.vue'),
         },
         {
           path: 'columns',
