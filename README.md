@@ -31,7 +31,7 @@ Yes论坛前端应用，基于 Vue 3 + Vite + TypeScript 构建，对接 `blog-s
 blog-web/
 ├── .claude/                   # Claude Code 配置：rules/（Karpathy 编码规则）、skills/（ui-ux-pro-max）
 ├── docs/                      # 接口契约与对接文档
-├── public/                    # 静态资源（原样拷贝到构建产物）
+├── public/                    # 静态资源（原样拷贝到构建产物；live2d.js 为看板娘初始化脚本）
 ├── src/
 │   ├── api/
 │   │   ├── request.ts         # axios 实例与拦截器（Token 注入、401 清除登录态并触发跳转）
@@ -177,6 +177,15 @@ npm run dev
 - 顶栏吸附在页面顶部，半透明背景 + 背景模糊；底边带模糊光晕与缓慢扫光，`prefers-reduced-motion` 下恢复静态边框。首页帖子卡片、搜索弹窗结果卡片与专栏详情帖子行悬停时均为金色边框、背景提亮并轻微放大；`prefers-reduced-motion` 下取消放大。消息铃铛与头像下拉菜单的条目悬停为深金底 + 浅金字，不使用 Element Plus 默认的近白底。
 - Logo 为“Yes论坛”，主色 `#405a6f`，带渐变扫光与背后光晕动画；`prefers-reduced-motion` 下静止。Logo 与“全部专栏”链接无下划线。
 - Markdown 预览使用 v-md-editor 的 github 主题，容器类为 `github-markdown-body`；深色覆盖同时适配 `.markdown-body` 与该类，表格、代码块、链接、标题边框均为深色。
+
+### 看板娘（Live2D）
+
+- 全局挂载：`index.html` 引入 `waifu.css` 与 `public/live2d.js`，初始化脚本动态加载 `waifu-tips.js` 和模型。
+- 上游项目：[stevenjoezhang/live2d-widget](https://github.com/stevenjoezhang/live2d-widget)。
+- 使用 `live2d-widgets@1.0.1`，通过 `gcore.jsdelivr.net` 引入；模型来自 `fghrsh/live2d_api@1.0.1`。
+- 不使用默认的 `fastly.jsdelivr.net`：它会把模型资源重定向到 `raw.githubusercontent.com`，部分网络下不可达，模型会一直加载、看板娘不显示。
+- 模型与脚本均为外部资源，需要联网；加载失败只在控制台提示，不阻塞应用。移除 `index.html` 中的样式和脚本即可关闭。
+- 默认模型为 Potion-Maker 的 Pio，工具菜单包含一言、切换模型/材质、拍照、信息、退出。
 
 ### 依赖管理
 

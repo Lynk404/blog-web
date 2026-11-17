@@ -1,13 +1,20 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="">
   <head>
-    <meta charset="UTF-8">
-    <link rel="icon" href="/favicon.ico">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Yes论坛</title>
   </head>
   <body>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
+    <!-- Live2D 看板娘：全局引入，来源 https://github.com/stevenjoezhang/live2d-widget
+         初始化见 public/live2d.js；加载失败不影响应用本身。 -->
+    <link
+      rel="stylesheet"
+      href="https://gcore.jsdelivr.net/npm/live2d-widgets@1.0.1/dist/waifu.css"
+    />
+    <script src="/live2d.js" defer></script>
   </body>
 </html>

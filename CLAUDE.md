@@ -158,6 +158,14 @@ npm run format       # prettier --write --experimental-cli src/
 - 可点击卡片（`shadow="hover"`）的悬停反馈由 `main.css` 的 `.el-card.is-hover-shadow:hover` 提供（边框金色、背景提亮）。Element Plus 默认悬停阴影在深色背景上几乎不可见，不要依赖它。
 - 顶部进度条（nprogress）使用金色，选择器为 `html:root #nprogress .bar`（`main.css`）。Markdown 编辑器与预览的深色覆盖同样在 `main.css`（`.v-md-editor`、`.markdown-body`、工具栏按钮 `.v-md-editor__toolbar-item` 及其 `--active` 状态、下拉菜单 `.v-md-editor__menu`）。**这些选择器必须带 `html:root` 前缀**：库样式在懒加载分包中后加载，同等特异性会被覆盖（曾因此出现白色编辑器背景）。
 
+### 全局第三方脚本（Live2D 看板娘）
+
+- `index.html` 引入 `waifu.css` 与 `public/live2d.js`；`public/live2d.js` 用动态 `import()` 加载 `live2d-widgets@1.0.1` 的 `waifu-tips.js`，再调用 `window.initWidget`。
+- 上游项目：<https://github.com/stevenjoezhang/live2d-widget>。
+- 资源统一走 `gcore.jsdelivr.net`：`fastly.jsdelivr.net` 会把模型资源重定向到 `raw.githubusercontent.com`，该域名在部分网络下不可达，模型会一直加载、看板娘不显示。模型使用 `fghrsh/live2d_api@1.0.1`。
+- 不要把它改成 `src/main.ts` 的静态 import，也不要内联到入口模块：外部 CDN 失败会阻塞应用启动。保持独立 `defer` 脚本，失败只输出 `console.warn`，不影响页面。
+- 需要关闭时删除 `index.html` 中的 `waifu.css` 与 `/live2d.js` 两处引用即可；没有 npm 依赖。
+
 ### 接口行为注意
 
 - `GET /api/rest/articles/:id` 每次调用阅读数 +1，不要放在渲染或 watch 循环中调用。
