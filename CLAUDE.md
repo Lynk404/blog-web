@@ -68,7 +68,7 @@ npm run format       # prettier --write --experimental-cli src/
 ### 专栏页面与共享面板
 
 - `src/components/ColumnSidebar.vue`：左侧专栏列表，首页、全部专栏页、专栏详情页共用。`showCreate` 控制列表末尾的“＋ 新建专栏”虚线项，只有专栏页传 `true`；未登录点击会提示并跳转登录页。新建成功后派发 `created` 事件。专栏详情页按 `route.params.id` 给对应项加 `is-active`（3px 金色左边线、金色渐变底、金色字重 600、`aria-current="page"`），且强于悬停的浅金底；首页与全部专栏页不高亮任何项。
-- `src/components/PanelBox.vue`：统一渐变标题栏 + 深色内容面板，`variant` 支持 `purple`（左栏）、`hot`（帖子列表、全部专栏、专栏帖子列表）与 `rank`（Yes排行榜，`#5b4522` 纯色标题栏 + 同色边框）；共享侧栏、首页、专栏页均使用它。
+- `src/components/PanelBox.vue`：统一渐变标题栏 + 深色内容面板，`variant` 支持 `purple`（左栏）、`hot`（帖子列表、全部专栏、专栏帖子列表）与 `rank`（Yes排行榜，`#5b4522` 纯色标题栏 + 同色边框）；共享侧栏、首页、专栏页均使用它。面板使用 `--app-panel-shadow: 0 0 40px 1px #484848` 营造四周柔和的悬浮效果。
 - `src/components/HomeCarousel.vue`：首页公告轮播，3 条本地占位公告，使用 `el-carousel`；桌面 320px、平板 240px、手机 200px，手机隐藏装饰图；`prefers-reduced-motion` 下关闭自动播放。后端公告接口接入后替换 `slides` 数组。
 - `/columns` 全部专栏页与 `/columns/:id` 专栏详情页都是「左侧 `ColumnSidebar` + 右侧合并主区」的网格布局（`260px + 1fr`，间距 40px）。
 - 专栏详情页顶部为专栏头（图标占位、专栏名、帖子数、本人操作）；下方为 `PanelBox` 帖子列表，行内展示封面缩略图、标题、阅读/评论/点赞、日期。专栏详情接口的 `aids[].author` 是用户 id 字符串而非 populate 后的对象，因此列表不显示作者；接口也不返回摘要，因此不显示摘要文字。

@@ -36,6 +36,7 @@ withDefaults(
   border: 1px solid var(--el-border-color);
   border-radius: 12px;
   background: var(--app-surface);
+  box-shadow: var(--app-panel-shadow);
 }
 
 .app-panel.is-purple .app-panel-head {
