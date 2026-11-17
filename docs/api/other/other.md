@@ -5,7 +5,7 @@
 返回当前 RSA 公钥，前端用于加密密码。
 - 响应：RSA 公钥字符串
 ```json
-{ "code": 200, "message": "ok", "data": { "pubKey": "-----BEGIN PUBLIC KEY-----..." } }
+{ "message": "ok", "data": { "pubKey": "-----BEGIN PUBLIC KEY-----..." } }
 ```
 - 公钥取自 `Key` 集合第一条文档的 `content` 字段，**密钥为 2048 位**。
 - **错误**：`Key` 集合为空时返回 `404`（`公钥未初始化`）。
@@ -27,8 +27,8 @@
 ## 校验登录态
 **GET** `/index` （需鉴权）
 - 响应：
-- 已登录：`{ "code": 200, "message": "ok" }`
-- 未登录：`{ "code": 401, "message": "请先登录" }`
+- 已登录：`{ "message": "ok" }`
+- 未登录：HTTP `401`，`{ "message": "请先登录" }`
 
 ## 用户模块 (`/user`)
 需鉴权。挂载在 `routes/user.js`。
@@ -36,7 +36,7 @@
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
 | GET | `/user` | 获取当前登录用户信息，附带 `articleCount`、`columnCount` |
-| PUT | `/user` | 更新当前用户信息，仅允许 `password`、`email`、`nikname` |
+| PUT | `/user` | 更新当前用户信息，仅允许 `password`、`email`、`nikname`、`avatar` |
 | DELETE | `/user` | 注销当前账号（不可恢复），级联规则见下文 |
 
 **PUT `/user` 请求体**
@@ -92,4 +92,4 @@
 ```
 **错误**
 - 文件超过限制：`422`，`文件大小不得超过 102400 bytes`
-> 上传成功后文件位于 `uploads/` 目录，通过 `http://127.0.0.1:3000/<filename>` 直接访问。
+> 上传成功后文件位于 `uploads/user/` 或 `uploads/article/`，通过 `http://127.0.0.1:3000/user/<filename>` 或 `http://127.0.0.1:3000/article/<filename>` 访问。

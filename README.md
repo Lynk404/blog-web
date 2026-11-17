@@ -39,7 +39,7 @@ blog-web/
 │   ├── assets/                # 参与构建的静态资源（main.css 为全局样式）
 │   ├── components/            # AppBrand.vue（logo）、MessageBell.vue（消息铃铛，接口预留）、ColumnSidebar.vue（共享专栏侧栏）、PanelBox.vue（渐变面板）、MarkdownEditor.vue / MarkdownPreview.vue（v-md-editor 封装）、profile/（编辑资料、修改密码、注销账号弹窗）
 │   ├── config/                # 接口表、基础配置、表单与弹窗、校验规则
-│   ├── layouts/               # AppLayout.vue（顶部导航 + 头像菜单）、AuthLayout.vue（登录、注册、个人主页，无导航）
+│   ├── layouts/               # AppLayout.vue（顶部导航：搜索、消息铃铛、头像菜单）、AuthLayout.vue（登录、注册、个人主页，无导航）
 │   ├── router/                # 路由配置与守卫
 │   ├── stores/                # Pinia 状态（user.ts）
 │   ├── types/                 # 接口数据类型（api.ts）、md-editor.d.ts（v-md-editor 类型声明）
@@ -95,7 +95,12 @@ npm run dev
 
 ## 环境变量
 
-（待补充，后续统一说明。）
+| 变量 | 用途 | 说明 |
+| --- | --- | --- |
+| `VITE_APP_BASE_URL` | axios 的 `baseURL`，后端接口基础地址 | 开发环境在 `.env.development` 中配置；该文件已被 git 跟踪，具体值不在文档中展开 |
+| `VITE_APP_FILE_UPLOAD_PATH` | 预留的上传路径变量 | 目前 `src/` 未引用，保留声明 |
+
+当前没有 `.env.production`；部署前需补充生产环境的后端地址。
 
 ---
 
@@ -132,7 +137,7 @@ npm run dev
 
 ### 路由
 
-- 路由配置集中在 `src/router/index.ts`。主站页面挂载在 `AppLayout`（顶部仅 logo、搜索框、头像菜单）下；登录、注册、个人主页、写帖子/编辑帖子挂载在 `AuthLayout`（无导航）下，未匹配路径进入 404 页面。
+- 路由配置集中在 `src/router/index.ts`。主站页面挂载在 `AppLayout`（顶部为 logo、搜索框、消息铃铛、头像菜单）下；登录、注册、个人主页、写帖子/编辑帖子挂载在 `AuthLayout`（无导航）下，未匹配路径进入 404 页面。
 - 首页使用 `meta.wide: true`，主区域放宽到 1600px；其他主站页面保持 960px。首页三栏比例为 `260px minmax(0, 1fr) 260px`，栏间距 40px，左右等宽使中栏居中；中栏为独立纵向容器（热门帖子 → 帖子列表），左栏与中栏顶部对齐，高度各自随内容，不拉伸。`≤1280px` 隐藏右栏，`≤820px` 变单栏。
 - `/columns` 全部专栏页与 `/columns/:id` 专栏详情页同样使用 `meta.wide`，布局为「左侧共享 `ColumnSidebar` + 右侧合并主区」，比例 `260px + 1fr`，间距 40px。新建专栏入口只在专栏页的左侧栏末尾显示。专栏详情页会在左侧栏高亮当前专栏（3px 金色左边线 + 金色渐变底 + 金色字），与鼠标移入的浅金底区分。
 - 搜索页 `/search` 是首页的嵌套子路由，`HomeView` 保持挂载，搜索弹窗以蒙版覆盖主页；关键词写入 `?q=`。
@@ -207,9 +212,15 @@ npm run build
 
 ---
 
-## 相关文档
+## 文档地图
 
-- 接口契约：`docs/integration/frontend-handoff.md`
-- 接口总览与约定：`docs/api/api.md`
-- 联调清单：`docs/integration/manual-checklist.md`
-- 后端服务：`../blog-server/README.md`
+| 文档 | 内容 | 主要读者 |
+| --- | --- | --- |
+| [README.md](README.md) | 技术栈、启动、脚本、页面、开发规范 | 前端开发者 |
+| [CLAUDE.md](CLAUDE.md) | 架构细节、接口行为、维护约定 | 维护者 / AI agent |
+| [docs/api/api.md](docs/api/api.md) | 后端接口总览、鉴权、响应格式 | 前后端 |
+| [docs/integration/frontend-handoff.md](docs/integration/frontend-handoff.md) | 前后端接口契约与联调顺序 | 前端 |
+| [docs/integration/manual-checklist.md](docs/integration/manual-checklist.md) | 浏览器手工联调清单 | 测试 |
+| [../blog-server/README.md](../blog-server/README.md) | 后端启动、部署与数据说明 | 后端 |
+
+> `docs/api/` 与 `../blog-server/docs/api/` 保持同名同内容；修改接口文档时两边同步。

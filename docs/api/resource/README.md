@@ -85,7 +85,6 @@ GET /api/rest/articles?options[sort]=-date&options[select]=title,cover
 **成功获取列表**：
 ```json
 {
-  "code": 200,
   "message": "ok",
   "data": {
     "count": 150,           // 总条数
@@ -98,13 +97,11 @@ GET /api/rest/articles?options[sort]=-date&options[select]=title,cover
 ```
 
 **操作成功（添加/更新/删除）**：
-```json
-{
-  "code": 200,
-  "message": "提交成功", 
-  "data": { "id": "60d5ecb8..." } // 创建成功时返回新 ID
-}
-```
+
+- 创建：`{ "message": "提交成功", "data": { "id": "60d5ecb8..." } }`
+- 更新：`{ "message": "修改成功" }`
+- 删除：`{ "errMsg": "ok" }`
+- 失败：`{ "code": <HTTP 状态码>, "message": "<中文原因>" }`
 
 ---
 

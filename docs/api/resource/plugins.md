@@ -51,7 +51,7 @@
 | 资源 | 允许修改字段 (`revisable`) | 归属校验字段 (`authField`) |
 | --- | --- | --- |
 | `Article` | `title`, `cover`, `content` | `author` (必须是文章作者) |
-| `User` | `password`, `email`, `nikname` | `_id` (只能改自己) |
+| `User` | `password`, `email`, `nikname`, `avatar` | `_id` (只能改自己) |
 | `Comment` | `content` | `uid` (必须是评论者) |
 | `Column` | `name` | `uid` (必须是专栏创建者) |
 
@@ -64,7 +64,7 @@
 | 资源 | 删除后的联动 |
 | --- | --- |
 | `Comment` | 从 `Article.comments` `$pull` 该评论 ID，并使 `comment_num` 减 1 |
-| `Article` | 从 `Column.aids` `$pull` 该文章 ID（该文章的评论暂不级联删除） |
+| `Article` | 先删除该文章下的全部评论，再从 `Column.aids` `$pull` 该文章 ID |
 
 ---
 

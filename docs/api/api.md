@@ -11,14 +11,15 @@
 
 ```json
 {
-  "code": 200,
   "message": "ok",
   "data": {}
 }
 ```
 
-- 成功时通常 `code` 为 `200`，`data` 为业务数据。
-- 错误时 `code` 为 HTTP 状态码，`message` 为错误文本。
+- 成功响应通常只有 `message` 与 `data`，没有 `code`；GET 详情为 `{ "message": "查询成功", "data": ... }`。
+- 失败响应为 `{ "code": <HTTP 状态码>, "message": "<中文原因>" }`。
+- `DELETE` 资源成功时返回 `{ "errMsg": "ok" }`，没有 `message` 字段。
+- 例外：500 响应可能没有 `code` 字段，`message` 为服务端原始报错文本，不要直接展示给用户。
 - **未登录访问任何路径（包括不存在的路径）都返回 `401`**，鉴权中间件先于路由执行，不会返回 `404`。例如未登录访问 `/nosuchpath` 得到 `401`。登录后访问不存在的路径才返回 `404`。
 
 ### 错误状态码
@@ -99,8 +100,9 @@ const cipher = rsa.encrypt(password, 'base64')
 
 
 ## 接口分类导航
-- [认证管理 (admin)](./admin/login.md)
+- [认证管理 (admin)](./admin/admin.md)
 - [通用资源总线 (resource)](./resource/README.md)
-- [文章扩展 (articles)](./articles/search.md)
-- [文件上传 (upload)](./upload/file.md)
-- [其他接口 (获取公钥 校验登录态 用户模块 文件上传)](./other/index.md)
+- [文章扩展 (articles)](./articles/articles.md)
+- [其他接口 (获取公钥、校验登录态、用户模块、文件上传)](./other/other.md)
+- [前后端对接说明](../integration/frontend-handoff.md)
+- [前后端联调手工清单](../integration/manual-checklist.md)

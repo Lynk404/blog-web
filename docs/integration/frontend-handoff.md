@@ -153,7 +153,7 @@ const cipher = btoa(String.fromCharCode(...new Uint8Array(buf)))  // 2048 位密
 - `size`：默认 100，**上限 100**，超出按 100 处理
 - `query[column]=<专栏id>`：按专栏筛选帖子
 - `query[q]=<关键字>`：标题和正文模糊搜索
-- `GET /api/rest/:resource` 的 `query` 中不允许 `$` 开头的键（如 `query[$where]`），否则 `400`。`GET /articles/search` 不返回 400，这些键会被忽略，只按 `query[q]` 搜索
+- `GET /api/rest/:resource` 的 `query` 中不允许 `$` 开头的键（如 `query[$where]`），否则 `400`。`GET /articles/search` 只读取 `query[q]`：缺失或为空返回 `400`（`搜索关键词不能为空`），其他 `query` 键（包括 `$` 开头）会被忽略，不参与查询
 
 返回：`data: { count, page, size, total, list, pages, display }`
 
