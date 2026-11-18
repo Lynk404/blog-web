@@ -34,6 +34,8 @@ const isCommentOwner = (c: Comment) => user.isLoggedIn && c.uid?._id === user.ui
 const authorText = computed(() => article.value?.author?.nikname?.charAt(0) ?? '')
 const currentUserText = computed(() => user.profile?.nikname?.charAt(0) ?? '')
 const commentCount = computed(() => article.value?.comments?.length ?? 0)
+// 后端按创建顺序返回评论，展示时倒序，最新评论在最上面
+const orderedComments = computed(() => [...(article.value?.comments ?? [])].reverse())
 
 // 注意：GET /api/rest/articles/:id 每次调用阅读数 +1，只在进入页面时请求一次
 async function load() {
@@ -330,10 +332,18 @@ watch(() => route.params.id, load)
 
         <el-empty v-if="!article.comments?.length" :image-size="80" description="暂无评论" />
 
-        <div v-for="c in article.comments" :key="c._id" class="comment">
-          <el-avatar :size="36" :src="c.uid?.avatar">{{
-            c.uid?.nikname?.charAt(0) ?? '匿'
-          }}</el-avatar>
+        <div v-for="c in orderedComments" :key="c._id" class="comment">
+          <RouterLink
+            v-if="c.uid?._id"
+            class="avatar-link"
+            :to="{ name: 'user-profile', params: { id: c.uid._id } }"
+            :aria-label="`查看 ${c.uid.nikname ?? '用户'} 的主页`"
+          >
+            <el-avatar :size="36" :src="c.uid.avatar">
+              {{ c.uid.nikname?.charAt(0) ?? '匿' }}
+            </el-avatar>
+          </RouterLink>
+          <el-avatar v-else :size="36">{{ c.uid?.nikname?.charAt(0) ?? '匿' }}</el-avatar>
           <div class="comment-main">
             <div class="comment-head">
               <span class="comment-name">{{ c.uid?.nikname ?? '匿名' }}</span>
@@ -503,7 +513,7 @@ a.author-name:hover {
   grid-area: side;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
   min-width: 0;
 }
 
@@ -635,6 +645,22 @@ a.author-name:hover {
 
 .comment + .comment {
   border-top: 1px solid var(--el-border-color-lighter);
+}
+
+.avatar-link {
+  display: inline-flex;
+  flex-shrink: 0;
+  border-radius: 50%;
+  text-decoration: none;
+}
+
+.avatar-link:hover {
+  box-shadow: 0 0 0 2px var(--el-color-primary);
+}
+
+.avatar-link:focus-visible {
+  outline: 2px solid var(--el-color-primary);
+  outline-offset: 2px;
 }
 
 .comment-main {

@@ -83,9 +83,9 @@ npm run format       # prettier --write --experimental-cli src/
 
 - 帖子详情 `ArticleDetailView.vue` 为两栏网格：`grid-template-columns: minmax(0, 5fr) minmax(280px, 2fr)`，间距 40px；`grid-template-areas` 为 `'main side' / 'comments side'`，内容卡片、右侧栏与评论区分别落在 `main`、`side`、`comments`。右栏 `position: sticky; top: 92px`（顶部导航 72px + 间距）；`≤960px` 单列，顺序为 内容 → 右栏 → 评论。
 - 右侧三块：发帖人（头像、昵称、“楼主”标签、进入用户页）、所属专栏（进入专栏详情）、帖子信息（发布时间、阅读、点赞、评论）。后端帖子只有 `date` 一个时间字段且编辑会覆写，因此不显示“更新时间”。
-- 内容卡片底部为统计（点赞、评论）与操作（点赞；作者额外显示编辑、删除）。评论区为独立 `PanelBox`，输入框在顶部，列表项含头像、昵称、时间、正文与本人编辑/删除按钮。
+- 内容卡片底部为统计（点赞、评论）与操作（点赞；作者额外显示编辑、删除）。评论区为独立 `PanelBox`，输入框在顶部，列表项含头像、昵称、时间、正文与本人编辑/删除按钮。后端按创建顺序返回评论，前端用 `orderedComments`（副本 `reverse`）倒序展示，最新评论在最上面；新评论仍 `push` 到原数组。评论头像链接到对应用户页。
 - 公开用户页 `UserProfileView.vue`：`GET /api/rest/users/:id` 取 `nikname`、`avatar`、`signature`；`GET /api/rest/articles?query[author]=<uid>&page=N&size=10` 取该用户的帖子与 `total`。页面为 960px 单列：资料卡 + “TA 的帖子”列表与分页；本人显示“编辑资料”进入 `/me`。获赞总数没有对应接口，不展示。
-- 入口：帖子详情内容卡作者昵称、右栏「查看 TA 的主页」均指向 `user-profile`。评论者昵称暂不链接。
+- 入口：帖子详情内容卡作者昵称、右栏「查看 TA 的主页」、评论区每条评论的头像均指向 `user-profile`。评论者昵称暂不链接。
 
 ### 登录态与自动登录
 
