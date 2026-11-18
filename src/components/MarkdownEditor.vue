@@ -11,10 +11,12 @@ import VMdEditorBase from '@kangc/v-md-editor/lib/codemirror-editor'
 import '@kangc/v-md-editor/lib/style/codemirror-editor.css'
 import githubTheme from '@kangc/v-md-editor/lib/theme/github.js'
 import '@kangc/v-md-editor/lib/theme/style/github.css'
+import hljs from 'highlight.js'
 
 // v-md-editor 2.x 不再内置 CodeMirror，需通过组件选项 Codemirror 注入，否则编辑器内部报错
 // scrollbarStyle 库默认为 overlay（需额外插件），这里改为 native
-VMdEditorBase.use(githubTheme)
+// github 主题必须注入 Hljs，否则任何代码块都会因 Hljs 为 undefined 抛异常并卡死页面
+VMdEditorBase.use(githubTheme, { Hljs: hljs })
 const VMdEditor = { ...VMdEditorBase, Codemirror: CodeMirror }
 
 withDefaults(defineProps<{ height?: string }>(), { height: '480px' })

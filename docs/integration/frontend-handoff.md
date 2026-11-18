@@ -130,7 +130,7 @@ const cipher = btoa(String.fromCharCode(...new Uint8Array(buf)))  // 2048 位密
 
 创建成功返回 `data: { id }`。
 
-**富文本内容**：`content` 发送前用 `encodeURIComponent` 编码，服务端会解码。
+**富文本内容**：`content` 发送前用 `encodeURIComponent` 编码，服务端会解码。单篇正文上限 100,000 字符；JSON 请求体上限 2 MB，超限返回 `413`「请求内容过大」。
 
 ### 5.5 上传（需登录）
 

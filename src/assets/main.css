@@ -371,6 +371,91 @@ html:root .github-markdown-body pre {
   color: var(--el-text-color-primary);
 }
 
+/* 代码块外层包装由主题设为浅灰底，需一并改为深色 */
+html:root .markdown-body div[class*='v-md-pre-wrapper-'],
+html:root .github-markdown-body div[class*='v-md-pre-wrapper-'] {
+  background: var(--el-fill-color-light);
+}
+
+html:root .markdown-body div[class*='v-md-pre-wrapper-'].line-numbers-mode:after,
+html:root .github-markdown-body div[class*='v-md-pre-wrapper-'].line-numbers-mode:after {
+  background: var(--el-fill-color-light);
+  border-right-color: var(--el-border-color);
+}
+
+html:root .markdown-body div[class*='v-md-pre-wrapper-'] .line-numbers-wrapper,
+html:root .github-markdown-body div[class*='v-md-pre-wrapper-'] .line-numbers-wrapper {
+  color: var(--el-text-color-secondary);
+}
+
+/* 代码高亮：github 主题自带浅色 token 配色，深色背景下需覆盖为 GitHub Dark 色板 */
+html:root :is(.markdown-body, .github-markdown-body) .hljs {
+  background: var(--el-fill-color-light);
+  color: var(--el-text-color-primary);
+}
+
+html:root :is(.markdown-body, .github-markdown-body) :is(.hljs-comment, .hljs-quote) {
+  color: #8b949e;
+}
+
+html:root
+  :is(.markdown-body, .github-markdown-body)
+  :is(.hljs-keyword, .hljs-selector-tag, .hljs-subst) {
+  color: #ff7b72;
+}
+
+html:root :is(.markdown-body, .github-markdown-body) :is(.hljs-string, .hljs-doctag) {
+  color: #a5d6ff;
+}
+
+html:root
+  :is(.markdown-body, .github-markdown-body)
+  :is(
+    .hljs-number,
+    .hljs-literal,
+    .hljs-variable,
+    .hljs-template-variable,
+    .hljs-tag .hljs-attr,
+    .hljs-built_in,
+    .hljs-builtin-name
+  ) {
+  color: #79c0ff;
+}
+
+html:root
+  :is(.markdown-body, .github-markdown-body)
+  :is(.hljs-title, .hljs-section, .hljs-selector-id) {
+  color: #d2a8ff;
+}
+
+html:root :is(.markdown-body, .github-markdown-body) :is(.hljs-type, .hljs-class .hljs-title) {
+  color: #ffa657;
+}
+
+html:root :is(.markdown-body, .github-markdown-body) :is(.hljs-attribute, .hljs-name, .hljs-tag) {
+  color: #7ee787;
+}
+
+html:root :is(.markdown-body, .github-markdown-body) :is(.hljs-link, .hljs-regexp) {
+  color: #a5d6ff;
+}
+
+html:root :is(.markdown-body, .github-markdown-body) :is(.hljs-bullet, .hljs-symbol) {
+  color: #f2cc60;
+}
+
+html:root :is(.markdown-body, .github-markdown-body) .hljs-meta {
+  color: #8b949e;
+}
+
+html:root :is(.markdown-body, .github-markdown-body) .hljs-deletion {
+  background: #67060c;
+}
+
+html:root :is(.markdown-body, .github-markdown-body) .hljs-addition {
+  background: #033a16;
+}
+
 html:root .markdown-body blockquote,
 html:root .github-markdown-body blockquote {
   color: var(--el-text-color-secondary);

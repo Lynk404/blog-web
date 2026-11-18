@@ -26,6 +26,8 @@ const loading = ref(true)
 const columns = ref<Column[]>([])
 const form = reactive({ title: '', column: '', content: '', cover: '' })
 const coverUploading = ref(false)
+// 正文经过 encodeURIComponent 后最多约 90 万字节，低于后端 2MB 的 JSON 上限
+const CONTENT_MAX_LENGTH = 100_000
 
 // 路由 articles/:id/edit 为编辑模式，同一页面复用
 const articleId = computed(() => (route.name === 'article-edit' ? String(route.params.id) : ''))
@@ -115,19 +117,35 @@ async function loadArticle() {
   }
 }
 
+// 服务端会对 content 做 decodeURIComponent（接口约定），因此发送前需编码。
+// 孤立代理字符等非法内容会让 encodeURIComponent 抛 URIError，这里统一转成用户可读提示。
+function encodeContent(): string | null {
+  if (form.content.length > CONTENT_MAX_LENGTH) {
+    ElMessage.error(`正文不能超过 ${CONTENT_MAX_LENGTH.toLocaleString()} 个字符`)
+    return null
+  }
+  try {
+    return encodeURIComponent(form.content)
+  } catch {
+    ElMessage.error('正文包含无法编码的字符，请重新粘贴后再试')
+    return null
+  }
+}
+
 function submit() {
   formRef.value?.validate(async (valid) => {
     if (!valid) return
+    const content = encodeContent()
+    if (content === null) return
     submitting.value = true
     try {
-      // 服务端会对 content 做 decodeURIComponent（接口约定），因此发送前需编码
       if (isEdit.value) {
         await Http({
           type: 'putArticle',
           data: {
             id: articleId.value,
             title: form.title.trim(),
-            content: encodeURIComponent(form.content),
+            content,
             cover: form.cover,
           },
         })
@@ -144,7 +162,7 @@ function submit() {
           type: 'postArticle',
           data: {
             title: form.title.trim(),
-            content: encodeURIComponent(form.content),
+            content,
             column: form.column,
             cover: form.cover || undefined,
           },
@@ -252,6 +270,10 @@ watch(articleId, () => void loadArticle())
         </el-form-item>
         <el-form-item label="正文（支持 Markdown）" prop="content">
           <MarkdownEditor v-model="form.content" height="480px" />
+          <p class="content-count" :class="{ 'is-over': form.content.length > CONTENT_MAX_LENGTH }">
+            {{ form.content.length.toLocaleString() }} / {{ CONTENT_MAX_LENGTH.toLocaleString() }}
+            字符
+          </p>
         </el-form-item>
         <el-button type="primary" class="submit" native-type="submit" :loading="submitting">
           {{ isEdit ? '保存' : '发布' }}
@@ -331,6 +353,18 @@ watch(articleId, () => void loadArticle())
 .cover-hint {
   color: var(--el-text-color-placeholder);
   font-size: 12px;
+}
+
+.content-count {
+  width: 100%;
+  margin: 6px 0 0;
+  color: var(--el-text-color-secondary);
+  font-size: 12px;
+  text-align: right;
+}
+
+.content-count.is-over {
+  color: var(--el-color-danger);
 }
 
 .action,

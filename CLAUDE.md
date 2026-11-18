@@ -10,7 +10,7 @@ npm run dev          # Vite 开发服务器；接口地址来自 .env.developmen
 npm run build        # run-p 并行执行 vue-tsc --build 与 vite build -> dist/
 npm run type-check   # 仅 vue-tsc 类型检查（覆盖 src/ 下全部 .ts/.vue）
 npm run build-only   # 仅 vite build，不做类型检查
-npm run preview      # 本地预览 dist/
+npm run preview      # 本地预览 dist/1
 npm run format       # prettier --write --experimental-cli src/
 ```
 
@@ -37,6 +37,7 @@ npm run format       # prettier --write --experimental-cli src/
 - **个人主页验证**（2026-11-18）：headless Chrome 以临时账号实测统计（帖子 1、评论 1、获赞 3、专栏 1）、两个页签、评论标题链接、资料卡「编辑资料」与「账号设置」下拉（修改密码、注销账号弹窗可打开）、编辑资料内含更换头像（accept 与 2 MB 提示）；页面文本不含邮箱与登录用户名；390px 下统计为 2×2、两个按钮同一行、无横向滚动。测试账号与内容已清理。
 - **胶囊按钮验证**（2026-11-18）：`/me` 2 个、专栏详情 3 个、帖子详情 3 个按钮均为 `#3b3b3b`、`999px` 圆角、带图标；悬停 `scale(1.05)`，阴影 `0 0 40px 1px #484848`；发表评论按钮保持金色，不受影响。
 - **动效与首屏验证**（2026-11-18）：headless Chrome 实测页面转场类与时长（入场 0.22s、离场 0.14s）、跨 Layout shell 转场、`/search` 打开/关闭保持 HomeView 节点与滚动位置、点击后 60ms 内无 NProgress、减少动效时 transition 为 0s、慢网首帧 3 个骨架且无“暂无帖子/暂无专栏”、冷启动 splash 存在且 mount 后移除；无 Transition 控制台警告。
+- **Markdown 编辑器修复验证**（2026-11-18）：注入 `Hljs` 后，小段代码块与 1.08 万字含 200 个代码块的预览均正常高亮，控制台无异常；代码块报错场景消除后，点击 logo 正常回首页，发布→详情→编辑全流程正常；1.69 万字正文（请求体 137 KB）发布成功；100,001 字符被前端拦截且不发请求，字数超限变红。测试账号与内容已清理。
 - 已实现页面：首页（三栏：左栏专栏、中栏公告轮播与帖子列表、右栏 Yes排行榜；无搜索栏和写帖子入口）、搜索（`/search` 蒙版覆盖首页，嵌套路由）、发布帖子与编辑帖子（全屏独立布局，登录，`article-create` 与 `article-edit` 复用同一组件，仅本人专栏可发布；封面图可上传、更换、移除）、帖子详情（两栏：左侧标题、作者行、封面、Markdown 正文、点赞与评论区，右侧发帖人/所属专栏/帖子信息；作者可编辑或删除帖子）、用户主页（`/users/:id` 公开页：资料卡 + 该用户帖子列表与分页）、专栏列表（登录后新建专栏；本人专栏显示“发布帖子”）、专栏详情（作者可改名、删除）、个人主页（资料卡与四项统计、我的内容页签、账号设置下拉）、登录、注册、404。
 - `src/plugins/` 为空目录。
 - `src/style.css` 为模板遗留文件，全项目未引用，待清理（删除前需确认）。
@@ -143,7 +144,8 @@ npm run format       # prettier --write --experimental-cli src/
 - 帖子封面在发布/编辑页通过 `POST /upload/article` 上传，返回 `string[]`，取第一个 URL 写入 `cover`；头像与封面共用 `src/config/upload.config.ts` 的 2 MB 限制和格式白名单。首页、搜索结果的帖子卡片与专栏详情列表均为“封面左置、内容右置”，详情页标题下方展示封面。
 - v-md-editor 的 github 主题实际容器类名是 `github-markdown-body`（不是 `markdown-body`）；`main.css` 的深色覆盖必须同时覆盖两个类名，尤其要覆盖表格 `tr` 与 `tr:nth-child(2n)` 的白色/浅灰背景，否则正文表格会显示为白底。
 - **编辑器内核由调用方注入**：v-md-editor 2.x 不内置 CodeMirror，`MarkdownEditor.vue` 通过组件选项 `Codemirror` 注入 `codemirror`（5.x，已作为直接依赖）。未注入时编辑器内部报 `reading 'doc'` 错误。库默认 `scrollbarStyle: 'overlay'` 需额外插件，这里改为 `native`。
-- v-md-editor 的子路径入口（`/lib/codemirror-editor`、`/lib/preview`、`/lib/theme/github.js`）与 `codemirror` 的最小类型声明在 `src/types/md-editor.d.ts`，修改编辑器导入方式时需同步维护。
+- **github 主题必须注入 Hljs**：`MarkdownEditor.vue` 与 `MarkdownPreview.vue` 都必须调用 `use(githubTheme, { Hljs: hljs })`。主题内部 `hasLang` 直接调用 `Hljs.getLanguage`，缺少 `Hljs` 时任何代码块都会抛 `Cannot read properties of undefined (reading 'getLanguage')`，打断 Vue 的更新与卸载，表现为预览停在旧内容、提交/跳转无响应、详情正文空白、编辑页卡死。`highlight.js` 必须作为直接依赖（`^10.7.3`，与 v-md-editor 的依赖范围一致），不要依赖传递依赖。
+- v-md-editor 的子路径入口（`/lib/codemirror-editor`、`/lib/preview`、`/lib/theme/github.js`）与 `codemirror` 的最小类型声明在 `src/types/md-editor.d.ts`，修改编辑器导入方式时需同步维护；`use` 的声明为 `(theme, options?)`，以支持传入 `{ Hljs }`。
 - 帖子详情与专栏详情只在挂载及 `route.params.id` 变化时请求，不在渲染中请求（`GET /api/rest/articles/:id` 每次调用阅读数 +1）。
 - 专栏列表与详情中的 `aids` 为 populate 后的帖子；专栏详情为单条查询，**不分页**，返回全部帖子（已用 `GET /api/rest/columns/:id` 确认）。
 
@@ -180,6 +182,7 @@ npm run format       # prettier --write --experimental-cli src/
 - 图标使用 Element Plus 组件，不使用 emoji。
 - 可点击卡片（`shadow="hover"`）的悬停反馈由 `main.css` 的 `.el-card.is-hover-shadow:hover` 提供（边框金色、背景提亮）。Element Plus 默认悬停阴影在深色背景上几乎不可见，不要依赖它。
 - 顶部进度条（nprogress）使用金色，选择器为 `html:root #nprogress .bar`（`main.css`）。Markdown 编辑器与预览的深色覆盖同样在 `main.css`（`.v-md-editor`、`.markdown-body`、工具栏按钮 `.v-md-editor__toolbar-item` 及其 `--active` 状态、下拉菜单 `.v-md-editor__menu`）。**这些选择器必须带 `html:root` 前缀**：库样式在懒加载分包中后加载，同等特异性会被覆盖（曾因此出现白色编辑器背景）。
+- 代码块高亮的 `.hljs-*` token 颜色由 `main.css` 以 `html:root :is(.markdown-body, .github-markdown-body) ...` 覆盖为 GitHub Dark 色板；主题自带的是浅色配色（关键字 `#333`），不覆盖会在深色背景上不可读。
 
 ### 全局第三方脚本（Live2D 看板娘）
 
@@ -203,6 +206,7 @@ npm run format       # prettier --write --experimental-cli src/
 - 公开用户接口 `GET /api/rest/users/:id` 只返回 `_id`、`nikname`、`avatar`、`signature`，不返回邮箱与统计；按作者取帖子用 `GET /api/rest/articles?query[author]=<uid>`。`Http` 的 GET `data` 中键名直接写 `'query[author]'`，axios 会保留方括号。
 - `GET /api/rest/comments?query[uid]=<uid>` 返回本人评论，含 `aid`，分页统一按 `_id` 倒序；评论列表不附带帖子标题，前端按 `aid` 用文章列表接口补充。
 - 服务端对帖子 `content` 的 setter 会把 `"` 替换为 `'`，Markdown 正文中的双引号会变成单引号（后端既有行为）。
+- 帖子正文上限 100,000 字符，`ArticleCreateView.vue` 提交前检查并显示实时字数；`encodeURIComponent` 用 `try/catch` 包裹（孤立代理字符会抛 `URIError`）。后端 `express.json` 上限已从默认 100 KB 提高到 2 MB：正文编码后中文约占 9 倍，旧上限约 1.1 万汉字即返回 413。
 - 评论的编辑与删除仅作者可见入口（`PUT`、`DELETE /api/rest/comments/:id`，后端 403 或 400 校验）。
 - 发布帖子只能选本人专栏（列表按 `uid` 筛选，取前 100 条）；他人专栏返回 403。后端 `blog-server/routes/bus.js` 会校验 `req._id === column.uid`，因此前端只在本人专栏显示“发布帖子”。若要让所有人在任意专栏发帖，必须修改后端，并接受专栏删除/作者注销时级联删除他人帖子的风险。
 

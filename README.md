@@ -19,6 +19,7 @@ Yes论坛前端应用，基于 Vue 3 + Vite + TypeScript 构建，对接 `blog-s
 | nprogress | ^0.2.0 | 路由跳转顶部进度条（`src/router/index.ts`） |
 | @kangc/v-md-editor | ^2.3.18 | Markdown 编辑与预览（Vue 3 版本；1.x 为 Vue 2，不兼容）。编辑器与预览按需加载 |
 | codemirror | ^5.65.21 | v-md-editor 2.x 不内置编辑器内核，由 `MarkdownEditor.vue` 注入。版本与库的依赖一致 |
+| highlight.js | ^10.7.3 | 代码块高亮；必须传入 v-md-editor 的 github 主题（`use(githubTheme, { Hljs: hljs })`），编辑器与预览共用 |
 | unplugin-auto-import / unplugin-vue-components | ^21.1.0 / ^32.1.0 | Element Plus 按需导入 |
 
 > 版本以 `package.json` 为准。
@@ -127,6 +128,7 @@ npm run dev
 - `src/api/request.ts` 统一处理 `baseURL`、Token 注入（`Authorization: Bearer`）与 401：清除登录态后，由 `main.ts` 注册的处理函数跳转登录页。
 - 路径参数（如 `getArticleById` 的 `:id`）由 `Http` 替换进 url，不再随请求发送。
 - 上传接口的 `data` 传入 `FormData`，原样发送，不做加密。
+- 发布/编辑帖子时正文先 `encodeURIComponent` 再发送（服务端 `decodeURIComponent`）。单篇正文上限 100,000 字符，提交前在 `ArticleCreateView.vue` 拦截；服务端 JSON 请求体上限为 2 MB。
 
 ### 敏感数据加密
 
@@ -156,7 +158,7 @@ npm run dev
 | --- | --- | --- |
 | `/` | 首页 | 三栏布局：左栏专栏列表、中栏公告轮播 + 帖子列表面板与分页（每页 10 条，封面左置）、右栏 Yes排行榜；无搜索栏和写帖子入口 |
 | `/search` | 搜索 | 首页嵌套路由，搜索弹窗以蒙版覆盖主页；关键词写入 `?q=`；结果卡片封面左置 |
-| `/articles/new` | 发布帖子 | 需登录，全屏独立布局。标题、封面图（可选，本地上传）、正文、专栏（仅本人专栏）；支持 `?column=<id>` 预选专栏；正文发送前编码 |
+| `/articles/new` | 发布帖子 | 需登录，全屏独立布局。标题、封面图（可选，本地上传）、正文（编辑器下方显示字符数，上限 100,000）、专栏（仅本人专栏）；支持 `?column=<id>` 预选专栏；正文发送前编码 |
 | `/articles/:id` | 帖子详情 | 两栏：左侧封面、Markdown 正文（xss 过滤）与评论区（最新评论在前，评论头像可进入用户页），右侧发帖人、所属专栏、帖子信息；作者名与「查看 TA 的主页」进入用户页；登录后可点赞（本页限一次）、发表评论；作者可编辑、删除帖子；作者可编辑、删除自己的评论 |
 | `/users/:id` | 用户主页 | 公开页面，展示头像、昵称、签名与帖子数；下方为该用户的帖子列表（封面左置）与分页；本人显示「编辑资料」入口 |
 | `/articles/:id/edit` | 编辑帖子 | 需登录，仅作者，全屏独立布局。Markdown 编辑；封面可更换或移除；专栏只读（后端不允许修改所属专栏） |
@@ -186,6 +188,8 @@ npm run dev
 - 顶栏吸附在页面顶部，半透明背景 + 背景模糊；底边带模糊光晕与缓慢扫光，`prefers-reduced-motion` 下恢复静态边框。首页帖子卡片、搜索弹窗结果卡片与专栏详情帖子行悬停时均为金色边框、背景提亮并轻微放大；`prefers-reduced-motion` 下取消放大。消息铃铛与头像下拉菜单的条目悬停为深金底 + 浅金字，不使用 Element Plus 默认的近白底。
 - Logo 为“Yes论坛”，主色 `#405a6f`，带渐变扫光与背后光晕动画；`prefers-reduced-motion` 下静止。Logo 与“全部专栏”链接无下划线。
 - Markdown 预览使用 v-md-editor 的 github 主题，容器类为 `github-markdown-body`；深色覆盖同时适配 `.markdown-body` 与该类，表格、代码块、链接、标题边框均为深色。
+- github 主题必须注入 `highlight.js`（`use(githubTheme, { Hljs: hljs })`）。缺少 `Hljs` 时任何代码块都会抛 `getLanguage` 异常，打断 Vue 更新并导致预览停滞、页面无法跳转。代码块 token 使用 GitHub Dark 色板，覆盖在 `main.css` 的 `.hljs-*` 规则中。
+- 帖子正文上限 100,000 字符；超限或包含无法编码的字符时在提交前给出中文提示，不发请求。
 
 ### 看板娘（Live2D）
 
@@ -208,6 +212,7 @@ npm run dev
 - **用户页统计**：`/me` 的获赞由前端分页累加本人帖子的 `like_num` 得出；公开用户页仍只展示帖子数。收藏的帖子/收藏数未实现（无接口），因此 `/me` 没有收藏页签。用户搜索/用户列表尚未实现；用户主页入口在帖子详情作者区与评论头像。
 - **列表与数据量**：首页中栏后续改为懒加载（当前一次性请求当前页 10 条，先记录、暂不实现）；专栏列表与编辑页专栏下拉仅取前 100 条；帖子评论全部内嵌、无分页。
 - **帖子图片**：帖子封面已支持上传（`POST /upload/article`，jpg/png/gif/webp，不超过 2 MB），头像同样为 2 MB；编辑器正文中的图片仍只支持外部地址。
+- **正文长度**：单篇上限 100,000 字符（编码后约 90 万字节），服务端 JSON 上限 2 MB；如需更大篇幅，需同时调整前后端限制并评估编辑器预览性能。
 - **消息中心**：后端消息接口未实现；`MessageBell.vue` 已用本地占位数据完成下拉列表与内容蒙版，接入后替换数据源。
 - **在他人专栏发帖**：后端 `routes/bus.js` 校验 `req._id === column.uid`，他人专栏返回 403；前端只在本人专栏显示“发布帖子”。如需支持，需要修改后端并接受级联删除风险。
 - **未决定事项**：环境变量说明、部署方案。
