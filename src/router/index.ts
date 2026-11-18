@@ -32,8 +32,10 @@ declare module 'vue-router' {
     centered?: boolean
     /** 主区域使用更宽的容器（首页三栏） */
     wide?: boolean
-    /** 覆盖在当前页面上的弹窗路由（/search），不改变底层滚动位置 */
+    /** 覆盖在当前页面上的弹窗路由（搜索、发布/编辑），不改变底层滚动位置 */
     overlay?: boolean
+    /** 蒙版关闭后返回的父路由 name，用于保持底层页面滚动位置 */
+    overlayParent?: string
   }
 }
 
@@ -41,9 +43,9 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) return savedPosition
-    // /search 覆盖在首页上，打开与关闭都不应改变首页滚动位置
+    // 蒙版路由（搜索、发布/编辑）打开与关闭都不改变底层页面的滚动位置
     if (to.meta.overlay) return false
-    if (from.meta.overlay && to.name === 'home') return false
+    if (from.meta.overlay && to.name === from.meta.overlayParent) return false
     if (to.hash) return { el: to.hash, behavior: 'smooth' }
     return { top: 0 }
   },
@@ -64,7 +66,7 @@ const router = createRouter({
               path: 'search',
               name: 'search',
               component: () => import('../views/SearchView.vue'),
-              meta: { overlay: true },
+              meta: { overlay: true, overlayParent: 'home' },
             },
           ],
         },
@@ -73,6 +75,15 @@ const router = createRouter({
           name: 'article-detail',
           component: () => import('../views/ArticleDetailView.vue'),
           meta: { wide: true },
+          // 编辑作为详情页的子路由：详情页保持挂载，编辑器以蒙版覆盖
+          children: [
+            {
+              path: 'edit',
+              name: 'article-edit',
+              component: () => import('../components/ArticleEditorDialog.vue'),
+              meta: { requiresAuth: true, overlay: true, overlayParent: 'article-detail' },
+            },
+          ],
         },
         {
           path: 'users/:id',
@@ -84,16 +95,34 @@ const router = createRouter({
           name: 'columns',
           component: () => import('../views/ColumnListView.vue'),
           meta: { wide: true },
+          // 无专栏参数时的发布入口：覆盖在全部专栏页上
+          children: [
+            {
+              path: 'new',
+              name: 'article-create-bare',
+              component: () => import('../components/ArticleEditorDialog.vue'),
+              meta: { requiresAuth: true, overlay: true, overlayParent: 'columns' },
+            },
+          ],
         },
         {
           path: 'columns/:id',
           name: 'column-detail',
           component: () => import('../views/ColumnDetailView.vue'),
           meta: { wide: true },
+          // 发布作为专栏详情页的子路由：专栏页保持挂载，编辑器以蒙版覆盖
+          children: [
+            {
+              path: 'articles/new',
+              name: 'article-create',
+              component: () => import('../components/ArticleEditorDialog.vue'),
+              meta: { requiresAuth: true, overlay: true, overlayParent: 'column-detail' },
+            },
+          ],
         },
       ],
     },
-    // 独立页面：不显示顶部导航栏，仅保留左上角 logo（登录、注册、个人主页、写文章）
+    // 独立页面：不显示顶部导航栏，仅保留左上角 logo（登录、注册、个人主页）
     {
       path: '/',
       component: AuthLayout,
@@ -102,18 +131,6 @@ const router = createRouter({
           path: 'me',
           name: 'profile',
           component: () => import('../views/ProfileView.vue'),
-          meta: { requiresAuth: true },
-        },
-        {
-          path: 'articles/new',
-          name: 'article-create',
-          component: () => import('../views/ArticleCreateView.vue'),
-          meta: { requiresAuth: true },
-        },
-        {
-          path: 'articles/:id/edit',
-          name: 'article-edit',
-          component: () => import('../views/ArticleCreateView.vue'),
           meta: { requiresAuth: true },
         },
         {

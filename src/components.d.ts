@@ -12,6 +12,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppBrand: typeof import('./components/AppBrand.vue')['default']
+    ArticleEditorDialog: typeof import('./components/ArticleEditorDialog.vue')['default']
     ColumnSidebar: typeof import('./components/ColumnSidebar.vue')['default']
     DeleteAccountDialog: typeof import('./components/profile/DeleteAccountDialog.vue')['default']
     ElAlert: typeof import('element-plus/es')['ElAlert']

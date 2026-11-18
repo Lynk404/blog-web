@@ -17,6 +17,10 @@ import type { Column, Pagination, ArticleDetail } from '../types/api'
 // 编辑器体积较大，懒加载
 const MarkdownEditor = defineAsyncComponent(() => import('../components/MarkdownEditor.vue'))
 
+// 嵌入弹窗时隐藏页内标题并去掉页面级留白
+defineProps<{ embedded?: boolean }>()
+const emit = defineEmits<{ saved: [] }>()
+
 const route = useRoute()
 const router = useRouter()
 const user = useUserStore()
@@ -37,6 +41,13 @@ const editNotFound = ref(false)
 
 // 后端只允许发布到本人专栏（他人专栏返回 403）；列表取前 100 条，超出部分需后续分页支持
 const myColumns = computed(() => columns.value.filter((c) => c.uid === user.uid))
+
+// 从专栏页发布时专栏 id 在父路由参数中；无专栏入口仍接受 ?column= 预选
+const presetColumnId = computed(() =>
+  route.name === 'article-create'
+    ? String(route.params.id ?? '')
+    : String(route.query.column ?? ''),
+)
 
 const rules: FormRules = {
   title: [{ required: true, message: '标题必填', trigger: 'blur' }],
@@ -150,6 +161,8 @@ function submit() {
           },
         })
         ElMessage.success('修改成功')
+        // 通知详情页刷新正文与标题（详情页在蒙版后保持挂载）
+        emit('saved')
         // 编辑页通常从帖子详情进入：有历史时回退到原详情，避免详情页重复入栈；
         // 直接打开编辑链接时没有历史，用详情页替换当前记录
         if (window.history.state?.back) {
@@ -182,8 +195,8 @@ function submit() {
 onMounted(async () => {
   void loadArticle()
   await loadColumns()
-  // 从专栏页进入时带 column 参数，仅本人专栏可选
-  const preset = String(route.query.column ?? '')
+  // 从专栏页进入时预选该专栏，仅本人专栏可选
+  const preset = presetColumnId.value
   if (!isEdit.value && preset && myColumns.value.some((col) => col._id === preset)) {
     form.column = preset
   }
@@ -193,8 +206,8 @@ watch(articleId, () => void loadArticle())
 </script>
 
 <template>
-  <div class="create">
-    <h2 class="heading">{{ isEdit ? '编辑帖子' : '发布帖子' }}</h2>
+  <div class="create" :class="{ 'is-embedded': embedded }">
+    <h2 v-if="!embedded" class="heading">{{ isEdit ? '编辑帖子' : '发布帖子' }}</h2>
 
     <el-skeleton v-if="loading" :rows="4" animated />
 
@@ -288,6 +301,11 @@ watch(articleId, () => void loadArticle())
   width: 100%;
   max-width: 960px;
   padding: 0 16px 48px;
+}
+
+.create.is-embedded {
+  max-width: none;
+  padding: 0;
 }
 
 .heading {

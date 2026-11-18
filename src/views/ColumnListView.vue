@@ -59,6 +59,9 @@ onMounted(load)
         </ul>
       </PanelBox>
     </main>
+
+    <!-- 无专栏参数直接发布时的蒙版子路由 -->
+    <RouterView />
   </div>
 </template>
 

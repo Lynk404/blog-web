@@ -90,7 +90,7 @@ async function removeColumn() {
 
 function publish() {
   if (!column.value) return
-  router.push({ name: 'article-create', query: { column: column.value._id } })
+  router.push({ name: 'article-create', params: { id: column.value._id } })
 }
 
 function openArticle(id: string) {
@@ -178,6 +178,9 @@ watch(() => route.params.id, load)
         </el-dialog>
       </template>
     </main>
+
+    <!-- 发布蒙版子路由：专栏页保持挂载 -->
+    <RouterView />
   </div>
 </template>
 

@@ -38,7 +38,7 @@ blog-web/
 │   │   ├── request.ts         # axios 实例与拦截器（Token 注入、401 清除登录态并触发跳转）
 │   │   └── index.ts           # 统一请求入口 Http()，所有接口经此调用
 │   ├── assets/                # 参与构建的静态资源（main.css 为全局样式）
-│   ├── components/            # AppBrand.vue（logo）、MessageBell.vue（消息铃铛，接口预留）、HomeCarousel.vue（首页公告轮播，占位内容）、ColumnSidebar.vue（共享专栏侧栏）、PanelBox.vue（渐变面板）、MarkdownEditor.vue / MarkdownPreview.vue（v-md-editor 封装）、profile/（编辑资料、修改密码、注销账号弹窗）
+│   ├── components/            # AppBrand.vue（logo）、MessageBell.vue（消息铃铛，接口预留）、HomeCarousel.vue（首页公告轮播，占位内容）、ColumnSidebar.vue（共享专栏侧栏）、PanelBox.vue（渐变面板）、MarkdownEditor.vue / MarkdownPreview.vue（v-md-editor 封装）、ArticleEditorDialog.vue（发布/编辑蒙版）、profile/（编辑资料、修改密码、注销账号弹窗）
 │   ├── config/                # 接口表、基础配置、表单与弹窗、校验规则
 │   ├── layouts/               # AppLayout.vue（顶部导航：搜索、消息铃铛、头像菜单）、AuthLayout.vue（登录、注册、个人主页，无导航）
 │   ├── router/                # 路由配置与守卫
@@ -147,10 +147,11 @@ npm run dev
 - 页面组件使用懒加载：`component: () => import('../views/Xxx.vue')`。
 - `meta.requiresAuth` 标记需登录页面（发布/编辑帖子、个人主页），`meta.guestOnly` 标记仅未登录可访问的页面（登录、注册），`meta.centered` 标记认证布局中内容需上下居中的页面（登录、注册）。守卫在 `router.beforeEach` 中处理。
 - 登录后的跳转地址经 `src/utils/redirect.ts` 的 `safeRedirect` 校验，仅允许站内路径。
-- 发布成功用 `router.replace` 跳转帖子详情，编辑器不留在历史记录中；编辑保存时若有历史则回退到原详情，否则用详情页替换编辑页。详情页「返回」在没有历史记录时回首页。
+- 发布/编辑是覆盖在当前页面上的 `el-dialog` 蒙版：发布作为专栏详情页的子路由，编辑作为帖子详情页的子路由，底层页面保持挂载。关闭蒙版（X、Esc、浏览器后退）回到父页面；发布成功仍 `router.replace` 到新帖子详情，编辑保存后回到原详情并由 `saved` 事件刷新正文。详情页「返回」在没有历史记录时回首页。
+- 旧发布地址 `/articles/new` 不再兼容，会按 `articles/:id` 处理并显示“帖子不存在”。
 - 顶部进度条（nprogress）在导航时延迟 150ms 启动，`afterEach` 与 `onError` 结束；首屏导航由 splash 负责，不启动进度条。
-- 页面切换在 `AppLayout` / `AuthLayout` 的 `RouterView` 上使用 `<Transition name="page" mode="out-in">`，key 为 `route.matched[1]?.path`：`/` 与 `/search` 共享 home，HomeView 不会重挂载。跨 Layout 与 404 由 `App.vue` 的 `shell` 过渡处理（仅透明度）。
-- 路由跳转默认回到顶部；`/search` 使用 `meta.overlay` 标记，打开与关闭搜索都不改变首页滚动位置。
+- 页面切换在 `AppLayout` / `AuthLayout` 的 `RouterView` 上使用 `<Transition name="page" mode="out-in">`，key 为 `route.matched[1]?.path`：`/` 与 `/search` 共享 home，`/articles/:id` 与编辑子路由共享详情页，父页面不会重挂载。跨 Layout 与 404 由 `App.vue` 的 `shell` 过渡处理（仅透明度）。
+- 路由跳转默认回到顶部；所有 `meta.overlay` 路由（搜索、发布、编辑）打开与关闭都不改变底层页面滚动位置，关闭时通过 `overlayParent` 判断父路由。
 
 ### 已实现页面
 
@@ -158,12 +159,13 @@ npm run dev
 | --- | --- | --- |
 | `/` | 首页 | 三栏布局：左栏专栏列表、中栏公告轮播 + 帖子列表面板与分页（每页 10 条，封面左置）、右栏 Yes排行榜；无搜索栏和写帖子入口 |
 | `/search` | 搜索 | 首页嵌套路由，搜索弹窗以蒙版覆盖主页；关键词写入 `?q=`；结果卡片封面左置 |
-| `/articles/new` | 发布帖子 | 需登录，全屏独立布局。标题、封面图（可选，本地上传）、正文（编辑器下方显示字符数，上限 100,000）、专栏（仅本人专栏）；支持 `?column=<id>` 预选专栏；正文发送前编码 |
 | `/articles/:id` | 帖子详情 | 两栏：左侧封面、Markdown 正文（xss 过滤）与评论区（最新评论在前，评论头像可进入用户页），右侧发帖人、所属专栏、帖子信息；作者名与「查看 TA 的主页」进入用户页；登录后可点赞（本页限一次）、发表评论；作者可编辑、删除帖子；作者可编辑、删除自己的评论 |
+| `/articles/:id/edit` | 编辑帖子 | 需登录，仅作者，蒙版覆盖在帖子详情页上。Markdown 编辑；封面可更换或移除；专栏只读（后端不允许修改所属专栏）；保存后详情自动刷新 |
 | `/users/:id` | 用户主页 | 公开页面，展示头像、昵称、签名与帖子数；下方为该用户的帖子列表（封面左置）与分页；本人显示「编辑资料」入口 |
-| `/articles/:id/edit` | 编辑帖子 | 需登录，仅作者，全屏独立布局。Markdown 编辑；封面可更换或移除；专栏只读（后端不允许修改所属专栏） |
 | `/columns` | 全部专栏 | 左侧共享专栏侧栏（末尾“新建专栏”）；右侧上方为“全部专栏”，下方用渐变面板列出全部专栏及帖子数 |
+| `/columns/new` | 发布帖子（无专栏参数） | 需登录，蒙版覆盖在全部专栏页上；在表单内选择本人专栏 |
 | `/columns/:id` | 专栏详情 | 左侧共享专栏侧栏；右侧上方为专栏头（本人显示发布/修改/删除），下方为渐变面板帖子列表（封面、标题、统计、日期） |
+| `/columns/:id/articles/new` | 发布帖子 | 需登录，蒙版覆盖在专栏详情页上。标题、封面图（可选，本地上传）、正文（编辑器下方显示字符数，上限 100,000）、专栏（预选当前专栏，仅本人专栏）；正文发送前编码 |
 | `/me` | 个人主页 | 需登录，独立页面（无导航栏）。资料卡（头像、昵称、签名、帖子/评论/获赞/专栏）、右上角「编辑资料」（含更换头像）与「账号设置」下拉（修改密码、退出登录、注销账号）；下方「我的内容」页签（发布的帖子、我的评论）；不展示邮箱与用户名 |
 | `/login` | 登录 | 独立页面，无导航栏，仅做必填校验 |
 | `/register` | 注册 | 独立页面，使用 `validate.config.ts` 完整规则 |
@@ -184,6 +186,7 @@ npm run dev
 - 个人主页的「编辑资料」「账号设置」、专栏详情作者的 3 个操作按钮、帖子详情的「点赞/编辑/删除」统一为 `#3b3b3b` 胶囊按钮：`border-radius: 999px`、图标 + 文字；悬停放大 1.05 并复用 `--app-panel-shadow`。发表评论与弹窗内按钮不套用该样式。
 - 帖子详情右栏与评论区使用中性面板（`PanelBox` 的 `plain` 变体）：无渐变标题栏、底部分隔线、15px 标题；内容卡片沿用相同的边框、圆角与阴影。
 - 页面转场：内容 220ms 淡入并上移 10px，离场 140ms 淡出；跨 Layout 为 160ms 淡入淡出；`prefers-reduced-motion` 下取消位移与动画。冷启动显示「Yes论坛」+ 金色流动条 splash，路由就绪后淡出；数据加载统一为暗色暖金 shimmer 骨架，首帧不再闪空态。
+- 发布/编辑使用 `el-dialog` 蒙版：宽度 `min(1040px, 94vw)`、`top: 5vh`，正文区域最高 76vh 内部滚动；点击蒙版不关闭，X 与 Esc 可关闭，避免误触丢失草稿。
 - 首页、搜索结果与专栏详情列表均采用“封面左置、内容右置”的帖子行；首页封面 160×96（移动端 112×72），无封面时显示文档占位图标，详情页标题下方展示封面大图。
 - 顶栏吸附在页面顶部，半透明背景 + 背景模糊；底边带模糊光晕与缓慢扫光，`prefers-reduced-motion` 下恢复静态边框。首页帖子卡片、搜索弹窗结果卡片与专栏详情帖子行悬停时均为金色边框、背景提亮并轻微放大；`prefers-reduced-motion` 下取消放大。消息铃铛与头像下拉菜单的条目悬停为深金底 + 浅金字，不使用 Element Plus 默认的近白底。
 - Logo 为“Yes论坛”，主色 `#405a6f`，带渐变扫光与背后光晕动画；`prefers-reduced-motion` 下静止。Logo 与“全部专栏”链接无下划线。

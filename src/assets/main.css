@@ -478,6 +478,13 @@ html:root .github-markdown-body hr {
   background-color: var(--el-border-color);
 }
 
+/* 发布/编辑蒙版：正文较长时在对话框内部滚动 */
+.article-editor-dialog .el-dialog__body {
+  max-height: 76vh;
+  overflow-y: auto;
+  padding-top: 8px;
+}
+
 /* 尊重系统的减少动效设置 */
 @media (prefers-reduced-motion: reduce) {
   *,

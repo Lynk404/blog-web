@@ -29,16 +29,16 @@ npm run format       # prettier --write --experimental-cli src/
 ## 代码库现状
 
 - 技术栈：Vue 3 + TypeScript（`<script setup lang="ts">`）+ Vite 8 + Pinia + Vue Router + Element Plus（按需导入）。
-- 已完成：布局与路由、只读浏览、登录注册、自动登录、头像菜单、个人主页（资料卡、统计、我的内容页签、账号设置下拉）、退出二次确认、登录注册卡片与居中、深色主题、三栏首页（左栏专栏、中栏公告轮播与帖子列表、右栏 Yes排行榜）、搜索蒙版页、全屏写帖子页、消息铃铛 UI（本地占位，接口预留）、帖子详情两栏改版（左内容与评论、右侧栏）与公开用户页 `/users/:id`，以及写入功能（评论、点赞、发布帖子、新建专栏、编辑资料、头像、改密码、注销），编辑与删除（帖子、评论、专栏，含级联提示），Markdown 编辑与预览（v-md-editor），路由顶部进度条（nprogress）、全站页面转场（淡入上浮 + 跨 Layout 淡入淡出）、首屏 splash 与骨架首帧修复。类型检查与构建通过。
+- 已完成：布局与路由、只读浏览、登录注册、自动登录、头像菜单、个人主页（资料卡、统计、我的内容页签、账号设置下拉）、退出二次确认、登录注册卡片与居中、深色主题、三栏首页（左栏专栏、中栏公告轮播与帖子列表、右栏 Yes排行榜）、搜索蒙版页、发布/编辑蒙版、消息铃铛 UI（本地占位，接口预留）、帖子详情两栏改版（左内容与评论、右侧栏）与公开用户页 `/users/:id`，以及写入功能（评论、点赞、发布帖子、新建专栏、编辑资料、头像、改密码、注销），编辑与删除（帖子、评论、专栏，含级联提示），Markdown 编辑与预览（v-md-editor），路由顶部进度条（nprogress）、全站页面转场（淡入上浮 + 跨 Layout 淡入淡出）、首屏 splash 与骨架首帧修复。类型检查与构建通过。
 - **接口层已验证**（后端在线）：只读接口与未登录 401 已验证；写接口、编辑与删除接口（含级联）均已用临时账号联调通过，测试脚本在项目外、未入库。
 - **部分浏览器验证**（2026-11-16）：用 headless Chrome 实测首页三栏与移动端布局（公告轮播、Yes排行榜、帖子列表面板）、搜索蒙版与结果、专栏页发布按钮、全屏写帖子页及专栏预选；后续补测登录后从左侧新建专栏、全部专栏列表刷新、未登录新建跳转登录、专栏详情选中高亮及移动端布局，以及选中态与悬停态的样式区分。注册流程可用，临时账号已注销。其余流程（自动登录、头像菜单、评论增删改、帖子编辑/删除、进度条）仍未做浏览器端到端测试，按 `docs/integration/manual-checklist.md` 检查。
 - **详情页与用户页验证**（2026-11-17）：headless Chrome 实测帖子详情两栏、右栏三块与两条入口、作者入口跳转 `/users/:id`、用户页每页 10 条与分页切换、390px 单列且无横向滚动。
-- **发布/编辑返回路径验证**（2026-11-17）：headless Chrome 以临时账号实测：专栏页发布 → 详情（`history.state.back` 为专栏页）→ 返回专栏页；详情 → 编辑 → 保存 → 回到详情 → 返回专栏页；直接打开详情（无历史）点返回 → 首页。测试账号与内容已清理。
+- **发布/编辑蒙版验证**（2026-11-18）：headless Chrome 以临时账号实测：专栏页发布蒙版（父页面节点与滚动位置 500 均不变）、发布成功跳详情、详情编辑蒙版（父页面节点不变）、保存后详情标题与正文自动刷新、浏览器后退关闭蒙版、直接 `/columns/new` 与 `/articles/:id/edit`、旧 `/articles/new` 显示“帖子不存在”、未登录跳登录并携带 `redirect`、390px 下蒙版宽 367px 且无横向滚动、正文区域内部滚动。测试账号与内容已清理。
 - **个人主页验证**（2026-11-18）：headless Chrome 以临时账号实测统计（帖子 1、评论 1、获赞 3、专栏 1）、两个页签、评论标题链接、资料卡「编辑资料」与「账号设置」下拉（修改密码、注销账号弹窗可打开）、编辑资料内含更换头像（accept 与 2 MB 提示）；页面文本不含邮箱与登录用户名；390px 下统计为 2×2、两个按钮同一行、无横向滚动。测试账号与内容已清理。
 - **胶囊按钮验证**（2026-11-18）：`/me` 2 个、专栏详情 3 个、帖子详情 3 个按钮均为 `#3b3b3b`、`999px` 圆角、带图标；悬停 `scale(1.05)`，阴影 `0 0 40px 1px #484848`；发表评论按钮保持金色，不受影响。
 - **动效与首屏验证**（2026-11-18）：headless Chrome 实测页面转场类与时长（入场 0.22s、离场 0.14s）、跨 Layout shell 转场、`/search` 打开/关闭保持 HomeView 节点与滚动位置、点击后 60ms 内无 NProgress、减少动效时 transition 为 0s、慢网首帧 3 个骨架且无“暂无帖子/暂无专栏”、冷启动 splash 存在且 mount 后移除；无 Transition 控制台警告。
 - **Markdown 编辑器修复验证**（2026-11-18）：注入 `Hljs` 后，小段代码块与 1.08 万字含 200 个代码块的预览均正常高亮，控制台无异常；代码块报错场景消除后，点击 logo 正常回首页，发布→详情→编辑全流程正常；1.69 万字正文（请求体 137 KB）发布成功；100,001 字符被前端拦截且不发请求，字数超限变红。测试账号与内容已清理。
-- 已实现页面：首页（三栏：左栏专栏、中栏公告轮播与帖子列表、右栏 Yes排行榜；无搜索栏和写帖子入口）、搜索（`/search` 蒙版覆盖首页，嵌套路由）、发布帖子与编辑帖子（全屏独立布局，登录，`article-create` 与 `article-edit` 复用同一组件，仅本人专栏可发布；封面图可上传、更换、移除）、帖子详情（两栏：左侧标题、作者行、封面、Markdown 正文、点赞与评论区，右侧发帖人/所属专栏/帖子信息；作者可编辑或删除帖子）、用户主页（`/users/:id` 公开页：资料卡 + 该用户帖子列表与分页）、专栏列表（登录后新建专栏；本人专栏显示“发布帖子”）、专栏详情（作者可改名、删除）、个人主页（资料卡与四项统计、我的内容页签、账号设置下拉）、登录、注册、404。
+- 已实现页面：首页（三栏：左栏专栏、中栏公告轮播与帖子列表、右栏 Yes排行榜；无搜索栏和写帖子入口）、搜索（`/search` 蒙版覆盖首页，嵌套路由）、发布帖子与编辑帖子（`el-dialog` 蒙版覆盖在当前页面上，底层页面保持挂载；`article-create`、`article-create-bare` 与 `article-edit` 复用同一组件，仅本人专栏可发布；封面图可上传、更换、移除）、帖子详情（两栏：左侧标题、作者行、封面、Markdown 正文、点赞与评论区，右侧发帖人/所属专栏/帖子信息；作者可编辑或删除帖子）、用户主页（`/users/:id` 公开页：资料卡 + 该用户帖子列表与分页）、专栏列表（登录后新建专栏；本人专栏显示“发布帖子”）、专栏详情（作者可改名、删除）、个人主页（资料卡与四项统计、我的内容页签、账号设置下拉）、登录、注册、404。
 - `src/plugins/` 为空目录。
 - `src/style.css` 为模板遗留文件，全项目未引用，待清理（删除前需确认）。
 - 服务端契约文档 `docs/integration/frontend-handoff.md` 是接口的权威来源。`docs/api/` 为后端侧参考，与 `../blog-server/docs/api/` 同名同内容（总览为 `api.md`），修改时两边同步；`docs/api` 沿用“文章”指代帖子，与后端模型和字段一致。
@@ -65,8 +65,9 @@ npm run format       # prettier --write --experimental-cli src/
 
 - `src/router/index.ts` 有两组布局：
   - **主站** `AppLayout`（`src/layouts/AppLayout.vue`，顶部仅 logo + 搜索框 + 消息铃铛 + 头像菜单，无首页/专栏菜单）：`home`（`meta.wide: true`，三栏）、其子路由 `search`（搜索蒙版）、`article-detail`（`meta.wide: true`）、`user-profile`（`/users/:id`，公开用户页）、`columns`、`column-detail`（`columns` 与 `column-detail` 也使用 `meta.wide`）。
-  - **独立页面** `AuthLayout`（`src/layouts/AuthLayout.vue`，无导航栏，仅左上角 logo `src/components/AppBrand.vue` 返回首页）：`login`、`register`（`guestOnly`，路由 meta `centered: true`，内容上下左右居中），以及 `profile`、`article-create`、`article-edit`（均 `requiresAuth`，顶部对齐；写帖子与编辑页为全屏布局）。
+  - **独立页面** `AuthLayout`（`src/layouts/AuthLayout.vue`，无导航栏，仅左上角 logo `src/components/AppBrand.vue` 返回首页）：`login`、`register`（`guestOnly`，路由 meta `centered: true`，内容上下左右居中），以及 `profile`（`requiresAuth`，顶部对齐）。
 - `search` 作为 `home` 的子路由，使 `HomeView` 在打开搜索时保持挂载，弹窗以蒙版覆盖主页；`HomeView` 内必须保留 `<RouterView />` 出口。
+- 发布/编辑同样是蒙版子路由：`article-detail` 下的 `edit`（`/articles/:id/edit`）、`column-detail` 下的 `articles/new`（`/columns/:id/articles/new`）、`columns` 下的 `new`（`/columns/new`）。父页面（`ArticleDetailView`、`ColumnDetailView`、`ColumnListView`）必须保留 `<RouterView />` 出口；`ArticleDetailView` 用 `@saved="load"` 在编辑保存后刷新正文。旧 `/articles/new` 不再兼容，会落到 `articles/:id` 动态路由并显示“帖子不存在”。
 - `AppLayout` 的 `el-main` 根据 `route.meta.wide` 放宽到 1600px；其他主站页面保持 960px。首页网格为 `260px minmax(0, 1fr) 260px`，栏间距 40px，左右等宽使中栏居中；中栏是独立纵向容器（公告轮播 → 帖子列表面板），右栏为 Yes排行榜，左栏与中栏顶部对齐，高度各自随内容，不拉伸。`≤1280px` 隐藏右栏变两栏，`≤820px` 变单栏。
 - 顶部搜索框是按钮（不是输入框），点击进入 `search`；真实输入与结果都在蒙版内。
 - 未匹配路径进入 `not-found`。
@@ -81,8 +82,8 @@ npm run format       # prettier --write --experimental-cli src/
 - 页面组件一律懒加载，路径为 `() => import('../views/Xxx.vue')`。
 - `router.beforeEach`：`requiresAuth` 未登录 → 登录页（携带 `redirect`）；`guestOnly` 已登录 → 首页。
 - 顶部进度条：导航时延迟 150ms 启动（避免瞬时导航闪条），`afterEach` 与 `onError` 清除定时器并 `done()`；首屏导航（`from === START_LOCATION`）不启动，由 splash 负责。样式在 `main.css`（金色渐变 + 辉光）。
-- 页面过渡：`AppLayout` / `AuthLayout` 的 `RouterView` 使用 `<Transition name="page" mode="out-in">`，key 为 `route.matched[1]?.path`。**不能改用 `route.path`/`route.fullPath`**：`/` 与 `/search` 的直属记录都是 home，这样 HomeView 才不会被重挂载。`App.vue` 的 `shell` 过渡负责跨 Layout 与 404，只做透明度。过渡类与动效令牌在 `main.css`；页面必须是单根节点。
-- `scrollBehavior`：`savedPosition` 优先；`/search` 路由 `meta.overlay: true`，打开与关闭搜索都不重置首页滚动；其他跳转回顶部。
+- 页面过渡：`AppLayout` / `AuthLayout` 的 `RouterView` 使用 `<Transition name="page" mode="out-in">`，key 为 `route.matched[1]?.path`。**不能改用 `route.path`/`route.fullPath`**：`/` 与 `/search` 的直属记录都是 home，这样 HomeView 才不会被重挂载；发布/编辑子路由的 `matched[1]` 是父页面，因此打开/关闭蒙版同样不会重挂载父页面。`App.vue` 的 `shell` 过渡负责跨 Layout 与 404，只做透明度。过渡类与动效令牌在 `main.css`；页面必须是单根节点。
+- `scrollBehavior`：`savedPosition` 优先；`meta.overlay` 路由（`/search`、发布、编辑）打开时不重置滚动；关闭时 `to.name === from.meta.overlayParent` 也不重置；其他跳转回顶部。新增蒙版路由必须同时声明 `overlay` 与 `overlayParent`。
 - 登录后跳转 `redirect`，由 `src/utils/redirect.ts` 的 `safeRedirect` 校验：仅接受以 `/` 开头且非 `//` 的站内路径。
 
 ### 帖子详情与用户页
@@ -137,8 +138,8 @@ npm run format       # prettier --write --experimental-cli src/
 - 首页为三栏：左栏共享 `ColumnSidebar`（无新建入口）、中栏公告轮播 + 帖子列表（`PanelBox` 包裹）+ 分页、右栏 Yes排行榜。首页不再含搜索栏和写帖子入口。
 - Yes排行榜额外请求 `articles`（`page: 1, size: 100`），前端按 `hit_num`、`like_num` 排序取前 5；这是“前 100 篇中的热门”，不是全站热门。`≤1280px` 时右栏隐藏，排行榜不显示。
 - 搜索为 `home` 的嵌套路由 `/search`，用 `el-dialog` 覆盖主页。关键词写入 `?q=`，直接访问 `/search?q=...` 可恢复；空关键词不发请求。
-- 写帖子/编辑帖子在 `AuthLayout` 下全屏显示，页面主体限宽 960px；`/articles/new?column=<id>` 会在本人专栏中预选该专栏，编辑模式忽略该参数。
-- 发布成功用 `router.replace` 跳到帖子详情，使编辑器不留在历史中；编辑保存时若 `window.history.state.back` 存在则 `router.back()` 回原详情（详情会重新挂载并 +1 阅读），否则 `router.replace` 到详情。详情页返回在无历史时用 `router.push({ name: 'home' })` 兜底。
+- 发布/编辑是覆盖在当前页面上的 `el-dialog` 蒙版，`ArticleCreateView` 通过 `embedded` 隐藏页内标题并去掉页面留白；发布作为专栏详情页子路由 `/columns/:id/articles/new`（无专栏时 `/columns/new`），编辑作为帖子详情页子路由 `/articles/:id/edit`。发布时预选父路由 `params.id` 对应的专栏，编辑模式忽略该值；没有旧 `/articles/new` 兼容路由。
+- 发布成功用 `router.replace` 跳到新帖子详情，使编辑器不留在历史中；编辑保存后先 `emit('saved')` 通知详情刷新，再在 `window.history.state.back` 存在时 `router.back()` 回原详情（父页面不卸载），否则 `router.replace` 到详情。蒙版关闭（X/Esc）由 `ArticleEditorDialog` 返回父路由，优先复用历史。详情页返回在无历史时用 `router.push({ name: 'home' })` 兜底。
 - “全部专栏”页在左侧栏末尾提供“新建专栏”。专栏详情页的“发布帖子”“修改专栏名”“删除专栏”只对本人专栏显示；他人专栏不显示发布按钮。后端仍禁止发布到他人专栏（见接口行为注意）。
 - 帖子正文为 **Markdown**，由 `src/components/MarkdownPreview.vue`（v-md-editor 预览）渲染。预览内置 xss 过滤，**不得关闭**。编辑器为 `src/components/MarkdownEditor.vue`。两者均为懒加载，只在需要的页面加载。若新增渲染入口，必须经过同一预览组件或同等净化，不得直接 `v-html`。
 - 帖子封面在发布/编辑页通过 `POST /upload/article` 上传，返回 `string[]`，取第一个 URL 写入 `cover`；头像与封面共用 `src/config/upload.config.ts` 的 2 MB 限制和格式白名单。首页、搜索结果的帖子卡片与专栏详情列表均为“封面左置、内容右置”，详情页标题下方展示封面。
@@ -174,6 +175,7 @@ npm run format       # prettier --write --experimental-cli src/
 - 首页帖子卡片、搜索弹窗结果卡片与专栏详情帖子行悬停时 `translateY(-2px) scale(1.015)`，边框变金、背景提亮；`prefers-reduced-motion: reduce` 时取消位移与缩放。
 - 操作按钮：`/me` 的「编辑资料」「账号设置」、专栏详情作者的 3 个按钮、帖子详情的「点赞/编辑/删除」使用 `main.css` 的 `app-pill-btn`：`#3b3b3b` 背景、`border-radius: 999px`、图标 + 文字，悬停 `scale(1.05)` + `--app-panel-shadow`；`app-pill-danger` 仅把文字改为 danger 色。发表评论与弹窗内按钮不套用，减少动效时取消放大。
 - 动效：`main.css` 的 `--app-motion-*` 定义 220ms 入场 / 140ms 离场；`page` 过渡淡入 + 上移 10px，`shell` 仅透明度。`prefers-reduced-motion` 下显式 `transition: none` 与 `transform: none`，不能只靠全局 `0.01ms` 兜底。
+- 发布/编辑蒙版：宽度 `min(1040px, 94vw)`、`top: 5vh`；`.article-editor-dialog .el-dialog__body` 最大高度 76vh 并在对话框内部滚动；点击蒙版不关闭，X 与 Esc 关闭，避免误触丢失草稿。
 - 加载：数据页 `loading` 初值为 `true`，首帧直接渲染骨架，避免闪“暂无数据”；`SearchView` 保持 `false`（初始显示输入提示）。`HomeView` 右栏榜单使用 `hotLoading` 骨架。骨架颜色由 `html:root .el-skeleton` 的 `--el-skeleton-color` / `--el-skeleton-to-color` 统一为暗色暖金。
 - 首屏：`index.html` 内联 `#app-splash`（`#app` 的兄弟节点）与黑色背景，`main.ts` 在 `router.isReady()` 后 mount，再给 splash 加 `is-hidden` 并移除。Live2D 的 `waifu.css` 用 preload 非阻塞加载。
 - Logo 文案为 `Yes论坛`，字号 24px（移动端 20px），主色 `#405a6f`，使用 `--app-logo-*` 变量；文字有渐变扫光、背后有蓝色呼吸光晕，`prefers-reduced-motion` 时关闭动画。`AppBrand` 与首页“全部专栏”链接不使用下划线。

@@ -395,6 +395,11 @@ watch(() => route.params.id, load)
         </div>
       </PanelBox>
     </div>
+
+    <!-- 编辑蒙版子路由；保存后重新拉取详情，避免显示旧标题/旧正文 -->
+    <RouterView v-slot="{ Component }">
+      <component :is="Component" v-if="Component" @saved="load" />
+    </RouterView>
   </div>
 </template>
 
