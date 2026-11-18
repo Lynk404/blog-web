@@ -29,7 +29,15 @@ async function bootstrap() {
     router.push({ name: 'login', query: { redirect: current.fullPath } })
   })
 
+  // 等首个路由组件（含懒加载 chunk）就绪后再挂载，首屏 splash 保持一致覆盖
+  await router.isReady().catch(() => undefined)
   app.mount('#app')
+
+  const splash = document.getElementById('app-splash')
+  if (splash) {
+    splash.classList.add('is-hidden')
+    window.setTimeout(() => splash.remove(), 240)
+  }
 }
 
 void bootstrap()

@@ -16,7 +16,7 @@ const route = useRoute()
 const router = useRouter()
 const user = useUserStore()
 
-const loading = ref(false)
+const loading = ref(true)
 const columns = ref<Column[]>([])
 
 // 当前选中的专栏：只在专栏详情页高亮对应项

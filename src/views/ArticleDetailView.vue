@@ -26,7 +26,7 @@ const router = useRouter()
 const user = useUserStore()
 
 const article = ref<ArticleDetail | null>(null)
-const loading = ref(false)
+const loading = ref(true)
 const notFound = ref(false)
 const liking = ref(false)
 const hasLiked = ref(false)

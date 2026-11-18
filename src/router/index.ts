@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, START_LOCATION } from 'vue-router'
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 import { useUserStore } from '../stores/user'
@@ -6,7 +6,21 @@ import AppLayout from '../layouts/AppLayout.vue'
 import AuthLayout from '../layouts/AuthLayout.vue'
 
 // 顶部进度条：每次路由跳转开始时显示，完成或出错时结束（无转圈图标）
-NProgress.configure({ showSpinner: false })
+NProgress.configure({ showSpinner: false, minimum: 0.1, trickleSpeed: 120, speed: 220 })
+
+// 延迟启动，避免瞬时导航和 /search 弹窗路由闪一下进度条
+let progressTimer: number | undefined
+
+function startProgress() {
+  window.clearTimeout(progressTimer)
+  progressTimer = window.setTimeout(() => NProgress.start(), 150)
+}
+
+function doneProgress() {
+  window.clearTimeout(progressTimer)
+  progressTimer = undefined
+  NProgress.done()
+}
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -18,11 +32,21 @@ declare module 'vue-router' {
     centered?: boolean
     /** 主区域使用更宽的容器（首页三栏） */
     wide?: boolean
+    /** 覆盖在当前页面上的弹窗路由（/search），不改变底层滚动位置 */
+    overlay?: boolean
   }
 }
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) return savedPosition
+    // /search 覆盖在首页上，打开与关闭都不应改变首页滚动位置
+    if (to.meta.overlay) return false
+    if (from.meta.overlay && to.name === 'home') return false
+    if (to.hash) return { el: to.hash, behavior: 'smooth' }
+    return { top: 0 }
+  },
   routes: [
     // 主站：带顶部导航栏
     {
@@ -40,6 +64,7 @@ const router = createRouter({
               path: 'search',
               name: 'search',
               component: () => import('../views/SearchView.vue'),
+              meta: { overlay: true },
             },
           ],
         },
@@ -113,8 +138,10 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to) => {
-  NProgress.start()
+router.beforeEach((to, from) => {
+  // 首屏由 index.html 的 splash 负责，避免双加载指示
+  if (from !== START_LOCATION) startProgress()
+
   const user = useUserStore()
   if (to.meta.requiresAuth && !user.isLoggedIn) {
     return { name: 'login', query: { redirect: to.fullPath } }
@@ -126,11 +153,11 @@ router.beforeEach((to) => {
 })
 
 router.afterEach(() => {
-  NProgress.done()
+  doneProgress()
 })
 
 router.onError(() => {
-  NProgress.done()
+  doneProgress()
 })
 
 export default router

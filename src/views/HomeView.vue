@@ -16,10 +16,11 @@ const HOT_POOL = 100
 const router = useRouter()
 
 const page = ref(1)
-const loading = ref(false)
+const loading = ref(true)
 const result = ref<Pagination<ArticleBrief> | null>(null)
 
 const hot = ref<ArticleBrief[]>([])
+const hotLoading = ref(true)
 
 async function loadArticles() {
   loading.value = true
@@ -46,6 +47,8 @@ async function loadHot() {
       .slice(0, HOT_LIMIT)
   } catch {
     // 错误已由 Http 弹出提示
+  } finally {
+    hotLoading.value = false
   }
 }
 
@@ -115,8 +118,9 @@ onMounted(() => {
       </div>
 
       <aside class="sidebar right">
-        <PanelBox v-if="hot.length" title="Yes排行榜" :icon="Trophy" variant="rank">
-          <ol class="hot-list">
+        <PanelBox v-if="hotLoading || hot.length" title="Yes排行榜" :icon="Trophy" variant="rank">
+          <el-skeleton v-if="hotLoading" :rows="5" animated />
+          <ol v-else class="hot-list">
             <li v-for="(item, index) in hot" :key="item._id">
               <button type="button" class="hot-item" @click="openArticle(item._id)">
                 <span

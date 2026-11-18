@@ -14,7 +14,11 @@ const centered = computed(() => route.meta.centered === true)
       <AppBrand />
     </el-header>
     <el-main class="auth-main" :class="{ 'is-centered': centered }">
-      <RouterView />
+      <RouterView v-slot="{ Component }">
+        <Transition name="page" mode="out-in">
+          <component :is="Component" :key="route.matched[1]?.path ?? route.path" />
+        </Transition>
+      </RouterView>
     </el-main>
   </el-container>
 </template>
@@ -33,6 +37,7 @@ const centered = computed(() => route.meta.centered === true)
 .auth-main {
   display: flex;
   justify-content: center;
+  min-height: calc(100vh - 60px);
   padding-top: 48px;
 }
 

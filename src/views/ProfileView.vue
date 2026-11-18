@@ -27,7 +27,7 @@ const LIKE_PAGE_SIZE = 100
 
 const router = useRouter()
 const user = useUserStore()
-const loading = ref(false)
+const loading = ref(true)
 const profile = computed(() => user.profile)
 const avatarText = computed(() => profile.value?.nikname?.charAt(0) ?? '')
 const uid = computed(() => profile.value?._id ?? '')
@@ -37,7 +37,7 @@ const passwordVisible = ref(false)
 const deleteVisible = ref(false)
 
 const tab = ref('posts')
-const statsLoading = ref(false)
+const statsLoading = ref(true)
 const commentTotal = ref(0)
 const likeTotal = ref(0)
 

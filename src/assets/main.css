@@ -54,6 +54,13 @@ html:root {
   --app-gold-active: rgba(212, 166, 58, 0.28);
   /* 面板悬浮感：四周灰色柔和阴影 */
   --app-panel-shadow: 0 0 40px 1px #484848;
+
+  /* 页面转场：离场约为入场的 60–70% */
+  --app-motion-enter: 220ms;
+  --app-motion-leave: 140ms;
+  --app-motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --app-motion-ease-in: cubic-bezier(0.55, 0, 0.55, 0.2);
+  --app-motion-shift: 10px;
   --app-on-gold: #1a1408;
   --app-on-purple: #f7f2ff;
   --app-on-rank: #161616;
@@ -183,9 +190,84 @@ html:root .el-button.app-pill-btn.app-pill-danger {
   background-color: var(--app-surface-hover);
 }
 
-/* 顶部进度条（nprogress）：使用金色强调色；选择器特异性高于库自带样式 */
+/* 页面转场类：Transition 会加到页面根元素上，必须放全局样式。
+ * 只动画 opacity 与 transform，避免重排。 */
+.page-enter-active {
+  transition:
+    opacity var(--app-motion-enter) var(--app-motion-ease-out),
+    transform var(--app-motion-enter) var(--app-motion-ease-out);
+  will-change: opacity, transform;
+}
+
+.page-leave-active {
+  transition:
+    opacity var(--app-motion-leave) var(--app-motion-ease-in),
+    transform var(--app-motion-leave) var(--app-motion-ease-in);
+  will-change: opacity, transform;
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(var(--app-motion-shift));
+}
+
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(calc(var(--app-motion-shift) * -0.4));
+}
+
+/* 跨 Layout、404：只做透明度，避免影响 sticky/fixed 元素 */
+.shell-enter-active {
+  transition: opacity 160ms var(--app-motion-ease-out);
+}
+
+.shell-leave-active {
+  transition: opacity 110ms var(--app-motion-ease-in);
+}
+
+.shell-enter-from,
+.shell-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter-active,
+  .page-leave-active,
+  .shell-enter-active,
+  .shell-leave-active {
+    transition: none !important;
+  }
+
+  .page-enter-from,
+  .page-leave-to,
+  .shell-enter-from,
+  .shell-leave-to {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* 骨架屏：统一为暗色 + 微暖金的高光 */
+html:root .el-skeleton {
+  --el-skeleton-color: #242428;
+  --el-skeleton-to-color: #3a3326;
+}
+
+/* 顶部进度条（nprogress）：金色渐变与辉光；选择器特异性高于库自带样式 */
 html:root #nprogress .bar {
-  background: var(--el-color-primary);
+  background: linear-gradient(
+    90deg,
+    var(--el-color-primary-dark-2),
+    var(--el-color-primary),
+    var(--el-color-primary-light-3)
+  );
+  box-shadow: 0 0 10px rgba(212, 166, 58, 0.55);
+}
+
+html:root #nprogress .peg {
+  box-shadow:
+    0 0 10px var(--el-color-primary),
+    0 0 5px var(--el-color-primary);
 }
 
 /* Markdown 编辑器与预览（v-md-editor）深色覆盖。

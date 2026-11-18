@@ -13,7 +13,7 @@ const route = useRoute()
 const router = useRouter()
 const user = useUserStore()
 
-const loading = ref(false)
+const loading = ref(true)
 const notFound = ref(false)
 const profile = ref<PublicUser | null>(null)
 const posts = ref<Pagination<ArticleBrief> | null>(null)

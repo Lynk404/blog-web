@@ -67,7 +67,12 @@ async function handleUserCommand(command: string) {
     </el-header>
 
     <el-main class="app-main" :class="{ 'is-wide': isWide }">
-      <RouterView />
+      <!-- key 取 Layout 直属页面记录：`/` 与 `/search` 都是 home，HomeView 不重挂载 -->
+      <RouterView v-slot="{ Component }">
+        <Transition name="page" mode="out-in">
+          <component :is="Component" :key="route.matched[1]?.path ?? route.path" />
+        </Transition>
+      </RouterView>
     </el-main>
   </el-container>
 </template>
@@ -205,6 +210,7 @@ async function handleUserCommand(command: string) {
 .app-main {
   max-width: 960px;
   width: 100%;
+  min-height: calc(100vh - 72px);
   margin: 0 auto;
 }
 
@@ -215,6 +221,10 @@ async function handleUserCommand(command: string) {
 @media (max-width: 600px) {
   .app-header {
     height: 64px;
+  }
+
+  .app-main {
+    min-height: calc(100vh - 64px);
   }
 
   .header-inner {

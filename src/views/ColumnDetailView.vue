@@ -14,7 +14,7 @@ import { confirmAction } from '../utils/confirm'
 const route = useRoute()
 const router = useRouter()
 const user = useUserStore()
-const loading = ref(false)
+const loading = ref(true)
 const notFound = ref(false)
 const column = ref<Column | null>(null)
 

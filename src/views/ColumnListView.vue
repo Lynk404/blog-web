@@ -9,7 +9,7 @@ import type { Column, Pagination } from '../types/api'
 
 const router = useRouter()
 
-const loading = ref(false)
+const loading = ref(true)
 const columns = ref<Column[]>([])
 
 async function load() {

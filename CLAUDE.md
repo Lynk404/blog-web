@@ -29,13 +29,14 @@ npm run format       # prettier --write --experimental-cli src/
 ## 代码库现状
 
 - 技术栈：Vue 3 + TypeScript（`<script setup lang="ts">`）+ Vite 8 + Pinia + Vue Router + Element Plus（按需导入）。
-- 已完成：布局与路由、只读浏览、登录注册、自动登录、头像菜单、个人主页（资料卡、统计、我的内容页签、账号设置下拉）、退出二次确认、登录注册卡片与居中、深色主题、三栏首页（左栏专栏、中栏公告轮播与帖子列表、右栏 Yes排行榜）、搜索蒙版页、全屏写帖子页、消息铃铛 UI（本地占位，接口预留）、帖子详情两栏改版（左内容与评论、右侧栏）与公开用户页 `/users/:id`，以及写入功能（评论、点赞、发布帖子、新建专栏、编辑资料、头像、改密码、注销），编辑与删除（帖子、评论、专栏，含级联提示），Markdown 编辑与预览（v-md-editor），路由顶部进度条（nprogress）。类型检查与构建通过。
+- 已完成：布局与路由、只读浏览、登录注册、自动登录、头像菜单、个人主页（资料卡、统计、我的内容页签、账号设置下拉）、退出二次确认、登录注册卡片与居中、深色主题、三栏首页（左栏专栏、中栏公告轮播与帖子列表、右栏 Yes排行榜）、搜索蒙版页、全屏写帖子页、消息铃铛 UI（本地占位，接口预留）、帖子详情两栏改版（左内容与评论、右侧栏）与公开用户页 `/users/:id`，以及写入功能（评论、点赞、发布帖子、新建专栏、编辑资料、头像、改密码、注销），编辑与删除（帖子、评论、专栏，含级联提示），Markdown 编辑与预览（v-md-editor），路由顶部进度条（nprogress）、全站页面转场（淡入上浮 + 跨 Layout 淡入淡出）、首屏 splash 与骨架首帧修复。类型检查与构建通过。
 - **接口层已验证**（后端在线）：只读接口与未登录 401 已验证；写接口、编辑与删除接口（含级联）均已用临时账号联调通过，测试脚本在项目外、未入库。
 - **部分浏览器验证**（2026-11-16）：用 headless Chrome 实测首页三栏与移动端布局（公告轮播、Yes排行榜、帖子列表面板）、搜索蒙版与结果、专栏页发布按钮、全屏写帖子页及专栏预选；后续补测登录后从左侧新建专栏、全部专栏列表刷新、未登录新建跳转登录、专栏详情选中高亮及移动端布局，以及选中态与悬停态的样式区分。注册流程可用，临时账号已注销。其余流程（自动登录、头像菜单、评论增删改、帖子编辑/删除、进度条）仍未做浏览器端到端测试，按 `docs/integration/manual-checklist.md` 检查。
 - **详情页与用户页验证**（2026-11-17）：headless Chrome 实测帖子详情两栏、右栏三块与两条入口、作者入口跳转 `/users/:id`、用户页每页 10 条与分页切换、390px 单列且无横向滚动。
 - **发布/编辑返回路径验证**（2026-11-17）：headless Chrome 以临时账号实测：专栏页发布 → 详情（`history.state.back` 为专栏页）→ 返回专栏页；详情 → 编辑 → 保存 → 回到详情 → 返回专栏页；直接打开详情（无历史）点返回 → 首页。测试账号与内容已清理。
 - **个人主页验证**（2026-11-18）：headless Chrome 以临时账号实测统计（帖子 1、评论 1、获赞 3、专栏 1）、两个页签、评论标题链接、资料卡「编辑资料」与「账号设置」下拉（修改密码、注销账号弹窗可打开）、编辑资料内含更换头像（accept 与 2 MB 提示）；页面文本不含邮箱与登录用户名；390px 下统计为 2×2、两个按钮同一行、无横向滚动。测试账号与内容已清理。
 - **胶囊按钮验证**（2026-11-18）：`/me` 2 个、专栏详情 3 个、帖子详情 3 个按钮均为 `#3b3b3b`、`999px` 圆角、带图标；悬停 `scale(1.05)`，阴影 `0 0 40px 1px #484848`；发表评论按钮保持金色，不受影响。
+- **动效与首屏验证**（2026-11-18）：headless Chrome 实测页面转场类与时长（入场 0.22s、离场 0.14s）、跨 Layout shell 转场、`/search` 打开/关闭保持 HomeView 节点与滚动位置、点击后 60ms 内无 NProgress、减少动效时 transition 为 0s、慢网首帧 3 个骨架且无“暂无帖子/暂无专栏”、冷启动 splash 存在且 mount 后移除；无 Transition 控制台警告。
 - 已实现页面：首页（三栏：左栏专栏、中栏公告轮播与帖子列表、右栏 Yes排行榜；无搜索栏和写帖子入口）、搜索（`/search` 蒙版覆盖首页，嵌套路由）、发布帖子与编辑帖子（全屏独立布局，登录，`article-create` 与 `article-edit` 复用同一组件，仅本人专栏可发布；封面图可上传、更换、移除）、帖子详情（两栏：左侧标题、作者行、封面、Markdown 正文、点赞与评论区，右侧发帖人/所属专栏/帖子信息；作者可编辑或删除帖子）、用户主页（`/users/:id` 公开页：资料卡 + 该用户帖子列表与分页）、专栏列表（登录后新建专栏；本人专栏显示“发布帖子”）、专栏详情（作者可改名、删除）、个人主页（资料卡与四项统计、我的内容页签、账号设置下拉）、登录、注册、404。
 - `src/plugins/` 为空目录。
 - `src/style.css` 为模板遗留文件，全项目未引用，待清理（删除前需确认）。
@@ -78,7 +79,9 @@ npm run format       # prettier --write --experimental-cli src/
 - 专栏详情页顶部为专栏头（图标占位、专栏名、帖子数、本人操作）；下方为 `PanelBox` 帖子列表，行内展示封面缩略图、标题、阅读/评论/点赞、日期。专栏详情接口的 `aids[].author` 是用户 id 字符串而非 populate 后的对象，因此列表不显示作者；接口也不返回摘要，因此不显示摘要文字。
 - 页面组件一律懒加载，路径为 `() => import('../views/Xxx.vue')`。
 - `router.beforeEach`：`requiresAuth` 未登录 → 登录页（携带 `redirect`）；`guestOnly` 已登录 → 首页。
-- 顶部进度条：`beforeEach` 调用 `NProgress.start()`，`afterEach` 与 `onError` 调用 `NProgress.done()`。进度条样式在 `main.css`。
+- 顶部进度条：导航时延迟 150ms 启动（避免瞬时导航闪条），`afterEach` 与 `onError` 清除定时器并 `done()`；首屏导航（`from === START_LOCATION`）不启动，由 splash 负责。样式在 `main.css`（金色渐变 + 辉光）。
+- 页面过渡：`AppLayout` / `AuthLayout` 的 `RouterView` 使用 `<Transition name="page" mode="out-in">`，key 为 `route.matched[1]?.path`。**不能改用 `route.path`/`route.fullPath`**：`/` 与 `/search` 的直属记录都是 home，这样 HomeView 才不会被重挂载。`App.vue` 的 `shell` 过渡负责跨 Layout 与 404，只做透明度。过渡类与动效令牌在 `main.css`；页面必须是单根节点。
+- `scrollBehavior`：`savedPosition` 优先；`/search` 路由 `meta.overlay: true`，打开与关闭搜索都不重置首页滚动；其他跳转回顶部。
 - 登录后跳转 `redirect`，由 `src/utils/redirect.ts` 的 `safeRedirect` 校验：仅接受以 `/` 开头且非 `//` 的站内路径。
 
 ### 帖子详情与用户页
@@ -168,6 +171,9 @@ npm run format       # prettier --write --experimental-cli src/
 - 顶栏使用 `position: sticky` 吸顶，半透明背景 + `backdrop-filter: blur`，底边有模糊光晕和缓慢横向扫光（呼应 Logo）；`prefers-reduced-motion` 时底边恢复静态边框。下拉菜单悬停色由 `main.css` 覆盖 `--el-dropdown-menuItem-hover-fill`（`--app-gold-soft`）与 `--el-dropdown-menuItem-hover-color`（`--el-color-primary-light-3`），避免默认 `primary-light-9` 的近白底导致金字看不清。
 - 首页帖子卡片、搜索弹窗结果卡片与专栏详情帖子行悬停时 `translateY(-2px) scale(1.015)`，边框变金、背景提亮；`prefers-reduced-motion: reduce` 时取消位移与缩放。
 - 操作按钮：`/me` 的「编辑资料」「账号设置」、专栏详情作者的 3 个按钮、帖子详情的「点赞/编辑/删除」使用 `main.css` 的 `app-pill-btn`：`#3b3b3b` 背景、`border-radius: 999px`、图标 + 文字，悬停 `scale(1.05)` + `--app-panel-shadow`；`app-pill-danger` 仅把文字改为 danger 色。发表评论与弹窗内按钮不套用，减少动效时取消放大。
+- 动效：`main.css` 的 `--app-motion-*` 定义 220ms 入场 / 140ms 离场；`page` 过渡淡入 + 上移 10px，`shell` 仅透明度。`prefers-reduced-motion` 下显式 `transition: none` 与 `transform: none`，不能只靠全局 `0.01ms` 兜底。
+- 加载：数据页 `loading` 初值为 `true`，首帧直接渲染骨架，避免闪“暂无数据”；`SearchView` 保持 `false`（初始显示输入提示）。`HomeView` 右栏榜单使用 `hotLoading` 骨架。骨架颜色由 `html:root .el-skeleton` 的 `--el-skeleton-color` / `--el-skeleton-to-color` 统一为暗色暖金。
+- 首屏：`index.html` 内联 `#app-splash`（`#app` 的兄弟节点）与黑色背景，`main.ts` 在 `router.isReady()` 后 mount，再给 splash 加 `is-hidden` 并移除。Live2D 的 `waifu.css` 用 preload 非阻塞加载。
 - Logo 文案为 `Yes论坛`，字号 24px（移动端 20px），主色 `#405a6f`，使用 `--app-logo-*` 变量；文字有渐变扫光、背后有蓝色呼吸光晕，`prefers-reduced-motion` 时关闭动画。`AppBrand` 与首页“全部专栏”链接不使用下划线。
 - 字体：系统无衬线字体栈。衬线字体方案已确认**暂不采用**，以后再说。
 - 可访问性：键盘焦点使用 `:focus-visible` 的可见轮廓；交互控件最小点击区域 44px（头像触发器、认证按钮）；尊重 `prefers-reduced-motion`。
@@ -177,7 +183,7 @@ npm run format       # prettier --write --experimental-cli src/
 
 ### 全局第三方脚本（Live2D 看板娘）
 
-- `index.html` 引入 `waifu.css` 与 `public/live2d.js`；`public/live2d.js` 用动态 `import()` 加载 `live2d-widgets@1.0.1` 的 `waifu-tips.js`，再调用 `window.initWidget`。
+- `index.html` 以 preload 方式非阻塞引入 `waifu.css`，并加载 `public/live2d.js`；`public/live2d.js` 用动态 `import()` 加载 `live2d-widgets@1.0.1` 的 `waifu-tips.js`，再调用 `window.initWidget`。
 - 上游项目：<https://github.com/stevenjoezhang/live2d-widget>。
 - 资源统一走 `gcore.jsdelivr.net`：`fastly.jsdelivr.net` 会把模型资源重定向到 `raw.githubusercontent.com`，该域名在部分网络下不可达，模型会一直加载、看板娘不显示。模型使用 `fghrsh/live2d_api@1.0.1`。
 - 不要把它改成 `src/main.ts` 的静态 import，也不要内联到入口模块：外部 CDN 失败会阻塞应用启动。保持独立 `defer` 脚本，失败只输出 `console.warn`，不影响页面。

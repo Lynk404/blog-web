@@ -13,7 +13,7 @@ Yes论坛前端应用，基于 Vue 3 + Vite + TypeScript 构建，对接 `blog-s
 | Pinia | ^3.0.4 | 状态管理 |
 | Element Plus | ^2.14.8 | UI 组件库，按需导入 |
 | @element-plus/icons-vue | ^2.3.2 | Element Plus 官方图标包（消息铃铛等） |
-| Vite | ^8.0.8 | 构建工具 |
+| Vite | ^8.0.8 | 构建工具 |  
 | TypeScript | ~6.0.0 | 类型检查（`vue-tsc`） |
 | Axios | ^1.21.1 | HTTP 请求 |
 | nprogress | ^0.2.0 | 路由跳转顶部进度条（`src/router/index.ts`） |
@@ -146,7 +146,9 @@ npm run dev
 - `meta.requiresAuth` 标记需登录页面（发布/编辑帖子、个人主页），`meta.guestOnly` 标记仅未登录可访问的页面（登录、注册），`meta.centered` 标记认证布局中内容需上下居中的页面（登录、注册）。守卫在 `router.beforeEach` 中处理。
 - 登录后的跳转地址经 `src/utils/redirect.ts` 的 `safeRedirect` 校验，仅允许站内路径。
 - 发布成功用 `router.replace` 跳转帖子详情，编辑器不留在历史记录中；编辑保存时若有历史则回退到原详情，否则用详情页替换编辑页。详情页「返回」在没有历史记录时回首页。
-- 每次路由跳转由 `router.beforeEach` 启动顶部进度条（nprogress），`afterEach` 与 `onError` 结束。
+- 顶部进度条（nprogress）在导航时延迟 150ms 启动，`afterEach` 与 `onError` 结束；首屏导航由 splash 负责，不启动进度条。
+- 页面切换在 `AppLayout` / `AuthLayout` 的 `RouterView` 上使用 `<Transition name="page" mode="out-in">`，key 为 `route.matched[1]?.path`：`/` 与 `/search` 共享 home，HomeView 不会重挂载。跨 Layout 与 404 由 `App.vue` 的 `shell` 过渡处理（仅透明度）。
+- 路由跳转默认回到顶部；`/search` 使用 `meta.overlay` 标记，打开与关闭搜索都不改变首页滚动位置。
 
 ### 已实现页面
 
@@ -179,6 +181,7 @@ npm run dev
 - 首页与专栏页的专栏列表、帖子列表、Yes排行榜等 `PanelBox` 使用统一的悬浮阴影：`box-shadow: 0 0 40px 1px #484848`。
 - 个人主页的「编辑资料」「账号设置」、专栏详情作者的 3 个操作按钮、帖子详情的「点赞/编辑/删除」统一为 `#3b3b3b` 胶囊按钮：`border-radius: 999px`、图标 + 文字；悬停放大 1.05 并复用 `--app-panel-shadow`。发表评论与弹窗内按钮不套用该样式。
 - 帖子详情右栏与评论区使用中性面板（`PanelBox` 的 `plain` 变体）：无渐变标题栏、底部分隔线、15px 标题；内容卡片沿用相同的边框、圆角与阴影。
+- 页面转场：内容 220ms 淡入并上移 10px，离场 140ms 淡出；跨 Layout 为 160ms 淡入淡出；`prefers-reduced-motion` 下取消位移与动画。冷启动显示「Yes论坛」+ 金色流动条 splash，路由就绪后淡出；数据加载统一为暗色暖金 shimmer 骨架，首帧不再闪空态。
 - 首页、搜索结果与专栏详情列表均采用“封面左置、内容右置”的帖子行；首页封面 160×96（移动端 112×72），无封面时显示文档占位图标，详情页标题下方展示封面大图。
 - 顶栏吸附在页面顶部，半透明背景 + 背景模糊；底边带模糊光晕与缓慢扫光，`prefers-reduced-motion` 下恢复静态边框。首页帖子卡片、搜索弹窗结果卡片与专栏详情帖子行悬停时均为金色边框、背景提亮并轻微放大；`prefers-reduced-motion` 下取消放大。消息铃铛与头像下拉菜单的条目悬停为深金底 + 浅金字，不使用 Element Plus 默认的近白底。
 - Logo 为“Yes论坛”，主色 `#405a6f`，带渐变扫光与背后光晕动画；`prefers-reduced-motion` 下静止。Logo 与“全部专栏”链接无下划线。
@@ -186,7 +189,7 @@ npm run dev
 
 ### 看板娘（Live2D）
 
-- 全局挂载：`index.html` 引入 `waifu.css` 与 `public/live2d.js`，初始化脚本动态加载 `waifu-tips.js` 和模型。
+- 全局挂载：`index.html` 以 preload 方式非阻塞引入 `waifu.css`，并由 `public/live2d.js` 动态加载 `waifu-tips.js` 和模型，避免外部 CDN 拖慢首屏。
 - 上游项目：[stevenjoezhang/live2d-widget](https://github.com/stevenjoezhang/live2d-widget)。
 - 使用 `live2d-widgets@1.0.1`，通过 `gcore.jsdelivr.net` 引入；模型来自 `fghrsh/live2d_api@1.0.1`。
 - 不使用默认的 `fastly.jsdelivr.net`：它会把模型资源重定向到 `raw.githubusercontent.com`，部分网络下不可达，模型会一直加载、看板娘不显示。
