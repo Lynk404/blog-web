@@ -2,7 +2,16 @@
 import { computed, defineAsyncComponent, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Calendar, ChatDotRound, Folder, User, View } from '@element-plus/icons-vue'
+import {
+  Calendar,
+  ChatDotRound,
+  Delete,
+  Edit,
+  Folder,
+  Star,
+  User,
+  View,
+} from '@element-plus/icons-vue'
 import Http from '../api'
 import PanelBox from '../components/PanelBox.vue'
 import { useUserStore } from '../stores/user'
@@ -241,12 +250,24 @@ watch(() => route.params.id, load)
             <span>评论 {{ commentCount }}</span>
           </div>
           <div class="action-buttons">
-            <el-button class="action" :loading="liking" :disabled="hasLiked" @click="like">
-              {{ hasLiked ? '已点赞' : '点赞' }}
+            <el-button
+              class="action app-pill-btn"
+              :loading="liking"
+              :disabled="hasLiked"
+              @click="like"
+            >
+              <el-icon><Star /></el-icon>
+              <span>{{ hasLiked ? '已点赞' : '点赞' }}</span>
             </el-button>
             <template v-if="isAuthor">
-              <el-button class="action" @click="editArticle">编辑</el-button>
-              <el-button class="action" type="danger" plain @click="removeArticle">删除</el-button>
+              <el-button class="action app-pill-btn" @click="editArticle">
+                <el-icon><Edit /></el-icon>
+                <span>编辑</span>
+              </el-button>
+              <el-button class="action app-pill-btn app-pill-danger" @click="removeArticle">
+                <el-icon><Delete /></el-icon>
+                <span>删除</span>
+              </el-button>
             </template>
           </div>
         </div>

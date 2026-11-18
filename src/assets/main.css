@@ -133,6 +133,49 @@ html:root .el-dropdown__popper {
   --el-dropdown-menuItem-hover-color: var(--el-color-primary-light-3);
 }
 
+/* 胶囊形操作按钮：/me、专栏详情、帖子详情共用。
+ * 统一 #3b3b3b 背景 + 图标 + 文字，悬停放大并复用面板阴影。 */
+html:root .el-button.app-pill-btn {
+  --el-button-text-color: var(--el-text-color-primary);
+  --el-button-hover-text-color: var(--el-text-color-primary);
+  --el-button-active-text-color: var(--el-text-color-primary);
+  --el-button-bg-color: #3b3b3b;
+  --el-button-border-color: #3b3b3b;
+  --el-button-hover-bg-color: #3b3b3b;
+  --el-button-hover-border-color: #3b3b3b;
+  --el-button-active-bg-color: #333333;
+  --el-button-active-border-color: #333333;
+  --el-button-disabled-bg-color: #333333;
+  --el-button-disabled-border-color: #333333;
+  --el-button-disabled-text-color: var(--el-text-color-secondary);
+  display: inline-flex;
+  gap: 6px;
+  border-radius: 999px;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+html:root .el-button.app-pill-btn:hover:not(.is-disabled) {
+  transform: scale(1.05);
+  box-shadow: var(--app-panel-shadow);
+}
+
+html:root .el-button.app-pill-btn.app-pill-danger {
+  --el-button-text-color: var(--el-color-danger);
+  --el-button-hover-text-color: var(--el-color-danger);
+  --el-button-active-text-color: var(--el-color-danger);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:root .el-button.app-pill-btn:hover:not(.is-disabled) {
+    transform: none;
+  }
+}
+
 /* 可点击卡片（shadow="hover"）的悬停反馈。
  * Element Plus 默认悬停阴影为 0 0 12px #0000001f，在深色背景上几乎不可见，因此改用边框与背景变化 */
 .el-card.is-hover-shadow:hover {

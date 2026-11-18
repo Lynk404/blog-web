@@ -153,6 +153,7 @@ const cipher = btoa(String.fromCharCode(...new Uint8Array(buf)))  // 2048 位密
 - `size`：默认 100，**上限 100**，超出按 100 处理
 - `query[column]=<专栏id>`：按专栏筛选帖子
 - `query[author]=<用户id>`：按作者筛选帖子（公开用户页使用）
+- `query[uid]=<用户id>`：按评论者筛选评论（个人主页“我的评论”使用）
 - `query[q]=<关键字>`：标题和正文模糊搜索
 - `GET /api/rest/:resource` 的 `query` 中不允许 `$` 开头的键（如 `query[$where]`），否则 `400`。`GET /articles/search` 只读取 `query[q]`：缺失或为空返回 `400`（`搜索关键词不能为空`），其他 `query` 键（包括 `$` 开头）会被忽略，不参与查询
 
@@ -163,7 +164,8 @@ const cipher = btoa(String.fromCharCode(...new Uint8Array(buf)))  // 2048 位密
 - 所有 `_id` 为 24 位十六进制字符串。
 - `date` 字段返回的是格式化字符串，形如 `2026年11月12日 16:26:00`，直接展示即可。
 - 帖子列表和详情会附带作者的 `nikname`、`avatar`，以及专栏的 `name`，评论列表会附带评论者的 `nikname`、`avatar`。
-- 用户公开接口只返回 `_id`、`nikname`、`avatar`、`signature`，不含邮箱与统计；公开用户页的帖子数取自按作者查询的 `total`。
+- 评论条目含 `aid`、`content`、`date`，不含帖子标题；需要标题时按 `aid` 再查帖子列表。分页统一按 `_id` 倒序。
+- 用户公开接口只返回 `_id`、`nikname`、`avatar`、`signature`，不含邮箱与统计；公开用户页的帖子数取自按作者查询的 `total`，个人主页的获赞由前端遍历本人帖子累加 `like_num`。
 
 ## 7. 状态码速查
 

@@ -46,6 +46,8 @@ export interface Comment {
   _id: string
   content: string
   date: string
+  /** 评论所属帖子 id */
+  aid?: string
   uid?: UserBrief
 }
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Collection, Document } from '@element-plus/icons-vue'
+import { Collection, Delete, Document, Edit, Plus } from '@element-plus/icons-vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import Http from '../api'
@@ -119,9 +119,18 @@ watch(() => route.params.id, load)
             <p>共 {{ column.aids?.length ?? 0 }} 篇帖子</p>
           </div>
           <div v-if="isOwner" class="hero-actions">
-            <el-button type="primary" class="action" @click="publish">发布帖子</el-button>
-            <el-button class="action" @click="openEdit">修改专栏名</el-button>
-            <el-button class="action" type="danger" plain @click="removeColumn">删除专栏</el-button>
+            <el-button class="action app-pill-btn" @click="publish">
+              <el-icon><Plus /></el-icon>
+              <span>发布帖子</span>
+            </el-button>
+            <el-button class="action app-pill-btn" @click="openEdit">
+              <el-icon><Edit /></el-icon>
+              <span>修改专栏名</span>
+            </el-button>
+            <el-button class="action app-pill-btn app-pill-danger" @click="removeColumn">
+              <el-icon><Delete /></el-icon>
+              <span>删除专栏</span>
+            </el-button>
           </div>
         </section>
 
