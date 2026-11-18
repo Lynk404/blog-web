@@ -93,3 +93,5 @@
 **错误**
 - 文件超过限制：`422`，`文件大小不得超过 2097152 bytes`
 > 上传成功后文件位于 `uploads/user/` 或 `uploads/article/`，通过 `http://127.0.0.1:3000/user/<filename>` 或 `http://127.0.0.1:3000/article/<filename>` 访问。
+>
+> 以上为本地示例；线上 URL 前缀由 `config.js` 的 `uploadURL` 决定。新用户和新文章不再写入默认头像/封面，`avatar`、`cover` 可能不存在。

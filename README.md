@@ -101,7 +101,13 @@ npm run dev
 | `VITE_APP_BASE_URL` | axios 的 `baseURL`，后端接口基础地址 | 开发环境在 `.env.development` 中配置；该文件已被 git 跟踪，具体值不在文档中展开 |
 | `VITE_APP_FILE_UPLOAD_PATH` | 预留的上传路径变量 | 目前 `src/` 未引用，保留声明 |
 
-当前没有 `.env.production`；部署前需补充生产环境的后端地址。
+同域名部署（推荐）时不需要 `.env.production`：`src/api/request.ts` 的 `baseURL` 在变量未设置时使用同源。只有 API 使用独立域名时才创建：
+
+```bash
+VITE_APP_BASE_URL=https://api.example.com
+```
+
+值不要带末尾 `/`。生产必须使用 HTTPS：密码加密依赖 WebCrypto，`crypto.subtle` 只在 HTTPS 或 localhost 下可用。
 
 ---
 
@@ -187,7 +193,7 @@ npm run dev
 - 帖子详情右栏与评论区使用中性面板（`PanelBox` 的 `plain` 变体）：无渐变标题栏、底部分隔线、15px 标题；内容卡片沿用相同的边框、圆角与阴影。
 - 页面转场：内容 220ms 淡入并上移 10px，离场 140ms 淡出；跨 Layout 为 160ms 淡入淡出；`prefers-reduced-motion` 下取消位移与动画。冷启动显示「Yes论坛」+ 金色流动条 splash，路由就绪后淡出；数据加载统一为暗色暖金 shimmer 骨架，首帧不再闪空态。
 - 发布/编辑使用 `el-dialog` 蒙版：宽度 `min(1040px, 94vw)`、`top: 5vh`，正文区域最高 76vh 内部滚动；点击蒙版不关闭，X 与 Esc 可关闭，避免误触丢失草稿。
-- 首页、搜索结果与专栏详情列表均采用“封面左置、内容右置”的帖子行；首页封面 160×96（移动端 112×72），无封面时显示文档占位图标，详情页标题下方展示封面大图。
+- 首页、搜索结果与专栏详情列表均采用“封面左置、内容右置”的帖子行；首页封面 160×96（移动端 112×72），无封面时不渲染封面区域、内容占满整行，详情页标题下方展示封面大图。
 - 顶栏吸附在页面顶部，半透明背景 + 背景模糊；底边带模糊光晕与缓慢扫光，`prefers-reduced-motion` 下恢复静态边框。首页帖子卡片、搜索弹窗结果卡片与专栏详情帖子行悬停时均为金色边框、背景提亮并轻微放大；`prefers-reduced-motion` 下取消放大。消息铃铛与头像下拉菜单的条目悬停为深金底 + 浅金字，不使用 Element Plus 默认的近白底。
 - Logo 为“Yes论坛”，主色 `#405a6f`，带渐变扫光与背后光晕动画；`prefers-reduced-motion` 下静止。Logo 与“全部专栏”链接无下划线。
 - Markdown 预览使用 v-md-editor 的 github 主题，容器类为 `github-markdown-body`；深色覆盖同时适配 `.markdown-body` 与该类，表格、代码块、链接、标题边框均为深色。
@@ -233,10 +239,14 @@ npm run dev
 ## 构建与部署
 
 ```bash
+# 同域名部署不需要 .env.production；跨域部署再填写 VITE_APP_BASE_URL
+npm ci
 npm run build
 ```
 
-构建产物位于 `dist/`，部署方案待定。
+- 构建产物在 `dist/`，交给 Nginx 或其他静态服务器托管。
+- Nginx 需要把 `/api/`、`/admin/`、`/keys`、`/index`、`/upload/`、`/articles/search`、`/articles/likes/`、`/user` 代理到后端，并让 `/` 回退到 `index.html`。
+- 后端图片仍存本地 `uploads/`；图片 URL、上传目录、Nginx 图片路径与大小限制等完整步骤见 [blog-server 部署文档](../blog-server/docs/deployment.md)。
 
 ---
 

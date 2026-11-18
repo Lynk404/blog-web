@@ -88,9 +88,6 @@ onMounted(() => {
             >
               <div class="item-body">
                 <img v-if="item.cover" :src="item.cover" alt="" class="item-cover" loading="lazy" />
-                <span v-else class="item-cover item-cover-empty">
-                  <el-icon :size="26" aria-hidden="true"><Document /></el-icon>
-                </span>
                 <div class="item-main">
                   <div class="title">{{ item.title }}</div>
                   <div class="meta">
@@ -287,13 +284,6 @@ onMounted(() => {
   border-radius: 8px;
   background: var(--el-fill-color);
   object-fit: cover;
-}
-
-.item-cover-empty {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--el-text-color-secondary);
 }
 
 .item-main {

@@ -262,9 +262,6 @@ onMounted(async () => {
                       class="post-cover"
                       loading="lazy"
                     />
-                    <span v-else class="post-cover post-cover-empty">
-                      <el-icon :size="22" aria-hidden="true"><Document /></el-icon>
-                    </span>
                     <span class="post-main">
                       <span class="post-title">{{ item.title }}</span>
                       <span class="post-meta">
@@ -494,13 +491,6 @@ onMounted(async () => {
   border-radius: 8px;
   background: var(--el-fill-color);
   object-fit: cover;
-}
-
-.post-cover-empty {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--el-text-color-secondary);
 }
 
 .post-main {

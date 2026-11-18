@@ -110,9 +110,6 @@ watch(() => route.params.id, loadProfile)
             <li v-for="item in posts.list" :key="item._id">
               <button type="button" class="post-row" @click="openArticle(item._id)">
                 <img v-if="item.cover" :src="item.cover" alt="" class="post-cover" loading="lazy" />
-                <span v-else class="post-cover post-cover-empty">
-                  <el-icon :size="22" aria-hidden="true"><Document /></el-icon>
-                </span>
                 <span class="post-main">
                   <span class="post-title">{{ item.title }}</span>
                   <span class="post-meta">
@@ -246,13 +243,6 @@ watch(() => route.params.id, loadProfile)
   border-radius: 8px;
   background: var(--el-fill-color);
   object-fit: cover;
-}
-
-.post-cover-empty {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--el-text-color-secondary);
 }
 
 .post-main {

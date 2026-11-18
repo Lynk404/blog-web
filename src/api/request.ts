@@ -23,7 +23,8 @@ export function setUnauthorizedHandler(handler: UnauthorizedHandler): void {
 }
 
 const request = axios.create({
-  baseURL: import.meta.env.VITE_APP_BASE_URL,
+  // 未配置时走同源（生产同域名部署）；开发环境由 .env.development 提供后端地址
+  baseURL: import.meta.env.VITE_APP_BASE_URL || '',
   timeout: base.TIMEOUT,
 })
 
