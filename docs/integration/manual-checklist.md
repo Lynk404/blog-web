@@ -7,7 +7,7 @@ Written for: 你本人（在浏览器里逐项操作并记录结果）。接口�
 - [ ] MongoDB 已启动，地址 `mongodb://127.0.0.1:27017/db_blog`
 - [ ] `auth/` 下有四个密钥文件：`public.cer`、`private.cer`、`jwt-public.pem`、`jwt-private.pem`
 - [ ] 已执行 `node scripts/sync-key.js`
-- [ ] 后端已启动：`npm start`，访问 `http://127.0.0.1:3000/keys` 返回 JSON 且 `data.pubKey` 有内容
+- [ ] 后端已启动：`npm run dev`，访问 `http://127.0.0.1:3000/keys` 返回 JSON 且 `data.pubKey` 有内容
 - [ ] 前端已启动，前端使用 RSA-OAEP + SHA-1 加密密码（**必须确认，否则下面所有登录都会失败**）
 - [ ] 打开浏览器开发者工具：Network 面板、Console 面板，全程保持打开
 

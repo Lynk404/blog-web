@@ -16,7 +16,7 @@ npm run format       # prettier --write --experimental-cli src/
 
 - Node：`^20.19.0 || >=22.12.0`（见 package.json 的 `engines`）。
 - 未配置测试框架与 lint，没有单测命令。验证改动使用 `npm run type-check` 与 `npm run build`。
-- 运行前需启动后端 `blog-server`（默认 `http://127.0.0.1:3000`，同级目录 `../blog-server`）：`cd ../blog-server && npm start`。前置条件：MongoDB 运行在 `mongodb://127.0.0.1:27017/db_blog`、`auth/` 下有四个密钥文件、已执行 `node scripts/sync-key.js`（详见 `docs/integration/manual-checklist.md`）。
+- 运行前需启动后端 `blog-server`（默认 `http://127.0.0.1:3000`，同级目录 `../blog-server`）：`cd ../blog-server && npm run dev`（nodemon 热更新；`npm start` 为 `node ./bin/www`）。前置条件：MongoDB 运行在 `mongodb://127.0.0.1:27017/db_blog`、`auth/` 下有四个密钥文件、已执行 `node scripts/sync-key.js`（详见 `docs/integration/manual-checklist.md`）。
 - `.env.development` 已被 git 跟踪。不要在输出或提交中打印、复制其中的值。当前没有 `.env.production`。
 
 ## 工作约定（用户要求）
@@ -52,6 +52,12 @@ npm run format       # prettier --write --experimental-cli src/
 ### 导入路径
 
 - 项目内一律使用**相对路径**，已移除 `@` 别名（`vite.config.ts` 与 `tsconfig.app.json` 中均已删除）。
+
+### 图片与开发代理
+
+- 后端上传接口返回**相对路径**（`/article/<文件名>`、`/user/<文件名>`），前端直接放进 `<img src>`、`el-avatar` 或 `cover`/`avatar` 字段，不拼接域名。
+- `vite.config.ts` 的 `server.proxy` 把 `/article/`、`/user/`、`/images/` 代理到 `VITE_APP_BASE_URL`（未设置时回退 `http://127.0.0.1:3000`）。代理键必须带尾斜杠，`/user` 会把前端路由 `/users/:id` 一起代理走。
+- 线上同域由 Nginx 提供这三个路径；前后端分域部署时，前端域名也要代理它们。
 
 ### Element Plus 按需导入
 
@@ -199,7 +205,7 @@ npm run format       # prettier --write --experimental-cli src/
 - `GET /api/rest/articles/:id` 每次调用阅读数 +1，不要放在渲染或 watch 循环中调用。
 - 删除专栏会级联删除他人帖子与评论；注销账号同样级联。UI 中必须先弹出确认。
 - 分页 `size` 上限为 100，首页使用 10。
-- 头像上传要求 `uid` 等于当前用户 id，返回的 URL 需再通过 `PUT /user` 写入。头像与帖子图片共用后端 `config.maxFileSize`（2 MB），仅 jpg/jpeg/png/gif/webp。帖子封面走 `POST /upload/article`，返回 `{ errno: 0, data: [url] }`，`Http` 解包后为 `string[]`。
+- 头像上传要求 `uid` 等于当前用户 id，返回的相对路径需再通过 `PUT /user` 写入。头像与帖子图片共用后端 `config.maxFileSize`（2 MB），仅 jpg/jpeg/png/gif/webp。帖子封面走 `POST /upload/article`，返回 `{ errno: 0, data: [url] }`，`Http` 解包后为 `string[]`。
 - `content` 发送前需 `encodeURIComponent`（仅帖子；服务端对帖子做 `decodeURIComponent`，评论不做此处理）。
 - `PUT /user` 可改字段为 `nikname`、`email`、`avatar`、`password`，**不含 `signature`**，个人主页不提供签名编辑。
 - 改密码后旧 token 失效存在同秒窗口：签发与改密码在同一秒内的旧 token 仍可能有效（后端 `iat` 精度为秒）。前端改密码成功后立即清除本地登录态。

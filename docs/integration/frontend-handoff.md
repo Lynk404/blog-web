@@ -144,7 +144,7 @@ const cipher = btoa(String.fromCharCode(...new Uint8Array(buf)))  // 2048 位密
 - 头像上传的 `uid` 必须是当前登录用户的 id，否则被拒绝，不会留下文件。
 - 头像上传后，还需调用 `PUT /user` 把 `fileURL` 写入 `avatar`。
 - `User.avatar`、`Article.cover` 可能不存在：新用户和新文章已移除默认图片。头像缺失时显示昵称首字；封面缺失时不渲染封面区域，不要假设字段一定有值。
-- 上传返回的是绝对 URL，服务端由 `config.js` 的 `uploadURL` 拼接（本地默认 `http://127.0.0.1:3000/...`）。上线时必须改为公网 HTTPS 域名，否则图片地址会被写成用户本机地址；前端把它当作不透明字符串使用，不需要拼接。
+- 上传返回的是**相对路径**（`/article/<文件名>`、`/user/<文件名>`），浏览器按页面域名解析；前端直接放进 `src` 或写入 `avatar`/`cover`，不需要拼接域名。本地开发由 Vite 把 `/article/`、`/user/`、`/images/` 代理到后端，线上由 Nginx 同域提供。
 - 图片实际路径是 `/article/...`、`/user/...`，由后端 `express.static(uploads)` 提供；Nginx 部署时需要用带扩展名的正则匹配，避免 `/user/...` 图片路径拦截 `GET /user` 接口。完整部署说明见 [blog-server docs/deployment.md](../../../blog-server/docs/deployment.md)。
 
 ### 5.6 列表查询参数

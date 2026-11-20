@@ -87,11 +87,11 @@
 > 文件类型不符返回 `422`（`只允许上传图片文件（jpg/png/gif/webp）`）。图片经同源访问时带 `X-Content-Type-Options: nosniff`。
 **响应**
 ```json
-// classify=user：{ "message": "上传成功", "data": { "fileURL": "http://127.0.0.1:3000/user/<filename>" } }
-// classify=article（富文本编辑器格式）：{ "errno": 0, "data": ["http://127.0.0.1:3000/article/<filename>"] }
+// classify=user：{ "message": "上传成功", "data": { "fileURL": "/user/<filename>" } }
+// classify=article（富文本编辑器格式）：{ "errno": 0, "data": ["/article/<filename>"] }
 ```
 **错误**
 - 文件超过限制：`422`，`文件大小不得超过 2097152 bytes`
-> 上传成功后文件位于 `uploads/user/` 或 `uploads/article/`，通过 `http://127.0.0.1:3000/user/<filename>` 或 `http://127.0.0.1:3000/article/<filename>` 访问。
+> 上传成功后文件位于 `uploads/user/` 或 `uploads/article/`，通过 `/user/<filename>` 或 `/article/<filename>` 访问。
 >
-> 以上为本地示例；线上 URL 前缀由 `config.js` 的 `uploadURL` 决定。新用户和新文章不再写入默认头像/封面，`avatar`、`cover` 可能不存在。
+> 返回值为相对路径，浏览器按页面域名解析：本地由 Vite 开发服务器代理到后端，线上由 Nginx 同域提供。换域名、本地/线上切库都不需要迁移数据。新用户和新文章不再写入默认头像/封面，`avatar`、`cover` 可能不存在。

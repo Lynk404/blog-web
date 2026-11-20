@@ -109,6 +109,8 @@ VITE_APP_BASE_URL=https://api.example.com
 
 值不要带末尾 `/`。生产必须使用 HTTPS：密码加密依赖 WebCrypto，`crypto.subtle` 只在 HTTPS 或 localhost 下可用。
 
+图片地址在数据库中是相对路径（`/article/...`、`/user/...`、`/images/...`），浏览器按页面域名解析。开发时 `vite.config.ts` 的 `server.proxy` 把这三个前缀转发到 `VITE_APP_BASE_URL`，由后端 `express.static` 提供；线上由 Nginx 同域提供，生产构建不包含代理配置。
+
 ---
 
 ## 开发规范
